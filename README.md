@@ -1,5 +1,4 @@
 <div align="center">
-### Extractor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Current version)](https://img.shields.io/badge/current_version-1.21.4-blue)
