@@ -34,6 +34,7 @@ class Extractor : ModInitializer {
             Items(),
             Blocks(),
             Tests(),
+            MultiNoise(),
         )
 
         val outputDirectory: Path
