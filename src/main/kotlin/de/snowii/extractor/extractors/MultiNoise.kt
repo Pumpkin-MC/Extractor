@@ -2,6 +2,7 @@ package de.snowii.extractor.extractors
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonArray
 import de.snowii.extractor.Extractor
 import net.minecraft.registry.DynamicRegistryManager
 import net.minecraft.registry.Registry
@@ -70,10 +71,10 @@ class MultiNoise : Extractor.Extractor {
     /**
      * Converts a ParameterRange into a JsonObject.
      */
-    private fun parameterRangeToJson(parameterRange: MultiNoiseUtil.ParameterRange): JsonObject {
-        val json = JsonObject()
-        json.addProperty("min", MultiNoiseUtil.toFloat(parameterRange.min()))
-        json.addProperty("max", MultiNoiseUtil.toFloat(parameterRange.max()))
-        return json
+    private fun parameterRangeToJson(parameterRange: MultiNoiseUtil.ParameterRange): JsonArray {
+        val array = JsonArray()
+        array.add(MultiNoiseUtil.toFloat(parameterRange.min()))
+        array.add(MultiNoiseUtil.toFloat(parameterRange.max()))
+        return array
     }
 }
