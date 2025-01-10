@@ -26,6 +26,7 @@ class Extractor : ModInitializer {
             Sounds(),
             Recipes(),
             Particles(),
+            ChunkStatus(),
             SyncedRegistries(),
             Packets(),
             Screens(),

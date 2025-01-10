@@ -8,10 +8,11 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 
 ### Supported Extractors
 - [x] Blocks
-- [x] Entites
+- [x] Entities
 - [x] Items
 - [x] Packets
 - [x] Multi Noise
+- [x] Chunk Status
 - [x] Noise Parameters
 - [x] Particles
 - [x] Recipes
