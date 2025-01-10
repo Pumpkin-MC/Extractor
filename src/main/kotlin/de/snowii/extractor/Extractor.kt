@@ -30,6 +30,7 @@ class Extractor : ModInitializer {
             Packets(),
             Screens(),
             Tags(),
+            NoiseParameters(),
             Entities(),
             Items(),
             Blocks(),
