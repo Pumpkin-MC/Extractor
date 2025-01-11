@@ -28,6 +28,7 @@ class Extractor : ModInitializer {
             Particles(),
             ChunkStatus(),
             MessageType(),
+            GameEvent(),
             SyncedRegistries(),
             Packets(),
             Screens(),
