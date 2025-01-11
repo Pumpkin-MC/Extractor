@@ -3,10 +3,7 @@ package de.snowii.extractor
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import de.snowii.extractor.extractors.*
-import de.snowii.extractor.extractors.ChunkStatus
 import de.snowii.extractor.extractors.non_registry.EntityPose
-import de.snowii.extractor.extractors.GameEvent
-import de.snowii.extractor.extractors.MessageType
 import de.snowii.extractor.extractors.non_registry.ScoreboardDisplaySlot
 import de.snowii.extractor.extractors.non_registry.SoundCategory
 import de.snowii.extractor.extractors.non_registry.WorldEvent
