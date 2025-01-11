@@ -27,6 +27,7 @@ class Extractor : ModInitializer {
             Recipes(),
             Particles(),
             ChunkStatus(),
+            MessageType(),
             SyncedRegistries(),
             Packets(),
             Screens(),
