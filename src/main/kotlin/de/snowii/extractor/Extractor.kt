@@ -9,6 +9,7 @@ import de.snowii.extractor.extractors.GameEvent
 import de.snowii.extractor.extractors.MessageType
 import de.snowii.extractor.extractors.non_registry.ScoreboardDisplaySlot
 import de.snowii.extractor.extractors.non_registry.SoundCategory
+import de.snowii.extractor.extractors.non_registry.WorldEvent
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
@@ -31,6 +32,7 @@ class Extractor : ModInitializer {
         val extractors = arrayOf(
             Sounds(),
             Recipes(),
+            WorldEvent(),
             ScoreboardDisplaySlot(),
             Particles(),
             ChunkStatus(),
