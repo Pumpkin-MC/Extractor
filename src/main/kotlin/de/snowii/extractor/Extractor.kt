@@ -29,6 +29,7 @@ class Extractor : ModInitializer {
         val extractors = arrayOf(
             Sounds(),
             Recipes(),
+            Biome(),
             WorldEvent(),
             ScoreboardDisplaySlot(),
             Particles(),
