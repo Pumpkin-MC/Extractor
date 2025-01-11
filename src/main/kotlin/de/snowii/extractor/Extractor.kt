@@ -3,6 +3,12 @@ package de.snowii.extractor
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import de.snowii.extractor.extractors.*
+import de.snowii.extractor.extractors.ChunkStatus
+import de.snowii.extractor.extractors.non_registry.EntityPose
+import de.snowii.extractor.extractors.GameEvent
+import de.snowii.extractor.extractors.MessageType
+import de.snowii.extractor.extractors.non_registry.ScoreboardDisplaySlot
+import de.snowii.extractor.extractors.non_registry.SoundCategory
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
@@ -25,10 +31,12 @@ class Extractor : ModInitializer {
         val extractors = arrayOf(
             Sounds(),
             Recipes(),
+            ScoreboardDisplaySlot(),
             Particles(),
             ChunkStatus(),
             MessageType(),
             SoundCategory(),
+            EntityPose(),
             GameEvent(),
             SyncedRegistries(),
             Packets(),

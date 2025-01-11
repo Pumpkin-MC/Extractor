@@ -1,4 +1,4 @@
-package de.snowii.extractor.extractors
+package de.snowii.extractor.extractors.non_registry
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
