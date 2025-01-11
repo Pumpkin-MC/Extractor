@@ -13,6 +13,7 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] Packets
 - [x] Multi Noise
 - [x] Message Type
+- [x] Sound Category
 - [x] Chunk Status
 - [x] Game Event
 - [x] Noise Parameters
