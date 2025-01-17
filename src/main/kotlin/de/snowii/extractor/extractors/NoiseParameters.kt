@@ -3,9 +3,12 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
+import net.minecraft.util.math.noise.DoublePerlinNoiseSampler
 
 class NoiseParameters : Extractor.Extractor {
     override fun fileName(): String {
@@ -17,16 +20,12 @@ class NoiseParameters : Extractor.Extractor {
         val noiseParameterRegistry =
             server.registryManager.getOrThrow(RegistryKeys.NOISE_PARAMETERS)
         for (noise in noiseParameterRegistry) {
-            val noiseJson = JsonObject()
-            noiseJson.addProperty("first_octave", noise.firstOctave)
-            val amplitudesJson = JsonArray()
-            noise.amplitudes.forEach { amplitude ->
-                amplitudesJson.add(amplitude)
-            }
-            noiseJson.add("amplitudes", amplitudesJson)
             noisesJson.add(
                 noiseParameterRegistry.getId(noise)!!.path,
-                noiseJson
+                DoublePerlinNoiseSampler.NoiseParameters.CODEC.encodeStart(
+                    RegistryOps.of(JsonOps.INSTANCE, server.registryManager),
+                    noise
+                ).getOrThrow()
             )
         }
 

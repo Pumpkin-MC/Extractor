@@ -33,6 +33,7 @@ class Extractor : ModInitializer {
             WorldEvent(),
             ScoreboardDisplaySlot(),
             Particles(),
+            EntityAttributes(),
             ChunkStatus(),
             MessageType(),
             SoundCategory(),
