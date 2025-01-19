@@ -3,10 +3,7 @@ package de.snowii.extractor
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import de.snowii.extractor.extractors.*
-import de.snowii.extractor.extractors.non_registry.EntityPose
-import de.snowii.extractor.extractors.non_registry.ScoreboardDisplaySlot
-import de.snowii.extractor.extractors.non_registry.SoundCategory
-import de.snowii.extractor.extractors.non_registry.WorldEvent
+import de.snowii.extractor.extractors.non_registry.*
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
@@ -49,6 +46,7 @@ class Extractor : ModInitializer {
             Blocks(),
             Tests(),
             MultiNoise(),
+            Translations(),
         )
 
         val outputDirectory: Path
