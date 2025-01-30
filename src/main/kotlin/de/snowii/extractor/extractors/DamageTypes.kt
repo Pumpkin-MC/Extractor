@@ -11,7 +11,7 @@ import net.minecraft.entity.damage.DamageType
 
 class DamageTypes : Extractor.Extractor {
     override fun fileName(): String {
-        return "damage_type.json"
+        return "damage_types.json"
     }
 
     override fun extract(server: MinecraftServer): JsonElement {
