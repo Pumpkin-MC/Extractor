@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.system.measureTimeMillis
 
 
 class Extractor : ModInitializer {
@@ -60,17 +61,20 @@ class Extractor : ModInitializer {
         val gson = GsonBuilder().disableHtmlEscaping().create()
 
         ServerLifecycleEvents.SERVER_STARTED.register(ServerLifecycleEvents.ServerStarted { server: MinecraftServer ->
-            for (ext in extractors) {
-                try {
-                    val out = outputDirectory.resolve(ext.fileName())
-                    val fileWriter = FileWriter(out.toFile(), StandardCharsets.UTF_8)
-                    gson.toJson(ext.extract(server), fileWriter)
-                    fileWriter.close()
-                    logger.info("Wrote " + out.toAbsolutePath())
-                } catch (e: java.lang.Exception) {
-                    logger.error(("Extractor for \"" + ext.fileName()) + "\" failed.", e)
+            val timeInMillis = measureTimeMillis {
+                for (ext in extractors) {
+                    try {
+                        val out = outputDirectory.resolve(ext.fileName())
+                        val fileWriter = FileWriter(out.toFile(), StandardCharsets.UTF_8)
+                        gson.toJson(ext.extract(server), fileWriter)
+                        fileWriter.close()
+                        logger.info("Wrote " + out.toAbsolutePath())
+                    } catch (e: java.lang.Exception) {
+                        logger.error(("Extractor for \"" + ext.fileName()) + "\" failed.", e)
+                    }
                 }
             }
+            logger.info("Done, took ${timeInMillis}ms")
         })
     }
 

@@ -3,10 +3,14 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
+import net.minecraft.loot.LootTable
 import net.minecraft.registry.Registries
+import net.minecraft.registry.RegistryKey
+import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 
 class Entities : Extractor.Extractor {
@@ -34,6 +38,16 @@ class Entities : Extractor.Extractor {
             dimension.add(entityType.height)
             entityJson.add("dimension", dimension)
             entityJson.addProperty("eye_height", entityType.dimensions.eyeHeight)
+            if (entityType.lootTableKey.isPresent) {
+                val table = server.reloadableRegistries
+                    .getLootTable(entityType.lootTableKey.get() as RegistryKey<LootTable?>)
+                entityJson.add(
+                    "loot_table", LootTable::CODEC.get().encodeStart(
+                        RegistryOps.of(JsonOps.INSTANCE, server.registryManager),
+                        table
+                    ).getOrThrow()
+                )
+            }
 
             entitiesJson.add(
                 Registries.ENTITY_TYPE.getId(entityType).path, entityJson
