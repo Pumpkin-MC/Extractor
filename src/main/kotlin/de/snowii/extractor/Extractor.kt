@@ -36,6 +36,7 @@ class Extractor : ModInitializer {
             MessageType(),
             SoundCategory(),
             EntityPose(),
+            MetaDataType(),
             GameEvent(),
             SyncedRegistries(),
             Packets(),
