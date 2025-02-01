@@ -6,29 +6,19 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import de.snowii.extractor.Extractor
 import it.unimi.dsi.fastutil.doubles.DoubleList
-import net.minecraft.block.Block
-import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
 import net.minecraft.registry.BuiltinRegistries
 import net.minecraft.registry.RegistryKeys
 
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.math.ChunkPos
 import net.minecraft.util.math.Spline
 import net.minecraft.util.math.noise.OctavePerlinNoiseSampler
 import net.minecraft.util.math.noise.PerlinNoiseSampler
 import net.minecraft.util.math.noise.SimplexNoiseSampler
-import net.minecraft.world.gen.chunk.*
 import net.minecraft.world.gen.densityfunction.DensityFunction
-import net.minecraft.world.gen.densityfunction.DensityFunction.EachApplier
 import net.minecraft.world.gen.densityfunction.DensityFunction.Noise
-import net.minecraft.world.gen.densityfunction.DensityFunction.NoisePos
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes.RegistryEntryHolder
-import net.minecraft.world.gen.noise.NoiseConfig
 import net.minecraft.world.gen.noise.NoiseRouter
-import kotlin.reflect.KFunction
-import kotlin.reflect.full.declaredFunctions
 
 class DensityFunctions : Extractor.Extractor {
     override fun fileName(): String = "density_function.json"
@@ -38,31 +28,39 @@ class DensityFunctions : Extractor.Extractor {
 
         when(spline) {
             is Spline.Implementation<*,*> -> {
-                obj.add("_type", JsonPrimitive("density"))
+                obj.add("_type", JsonPrimitive("standard"))
+
+                val value = JsonObject()
                 val functionWrapper = spline.locationFunction() as DensityFunctionTypes.Spline.DensityFunctionWrapper
-                obj.add("locationFunction", serializeFunction(functionWrapper.function.value()))
+                value.add("locationFunction", serializeFunction(functionWrapper.function.value()))
 
                 val locationArr = JsonArray()
                 for (location in spline.locations()) {
                     locationArr.add(JsonPrimitive(location))
                 }
-                obj.add("locations", locationArr)
+                value.add("locations", locationArr)
 
                 val valueArr = JsonArray()
-                for (value in spline.values()) {
-                    valueArr.add(serializeSpline(value))
+                for (splineValue in spline.values()) {
+                    valueArr.add(serializeSpline(splineValue))
                 }
-                obj.add("values", valueArr)
+                value.add("values", valueArr)
 
                 val derivativeArr = JsonArray()
                 for (derivative in spline.derivatives()) {
                     derivativeArr.add(JsonPrimitive(derivative))
                 }
-                obj.add("derivatives", derivativeArr)
+                value.add("derivatives", derivativeArr)
+
+                obj.add("value", value)
             }
             is Spline.FixedFloatFunction<*,*> -> {
                 obj.add("_type", JsonPrimitive("fixed"))
-                obj.add("value", JsonPrimitive(spline.value()))
+
+                val value = JsonObject()
+                value.add("value", JsonPrimitive(spline.value()))
+
+                obj.add("value", value)
             }
             else -> throw Exception("Unknown spline: $obj (${obj.javaClass})")
         }
@@ -70,83 +68,32 @@ class DensityFunctions : Extractor.Extractor {
         return obj
     }
 
-    private fun serializePerlinNoise(sampler: PerlinNoiseSampler): JsonObject {
-        val obj = JsonObject()
-
-        val permutationField = sampler.javaClass.declaredFields.first { ele -> ele.name == "permutation" }
-        permutationField.trySetAccessible()
-        val permutation = permutationField.get(sampler) as ByteArray
-        val permutationArr = JsonArray()
-        for (byte in permutation) {
-            permutationArr.add(byte)
-        }
-
-        obj.add("permutation", permutationArr)
-        obj.add("originX", JsonPrimitive(sampler.originX))
-        obj.add("originY", JsonPrimitive(sampler.originY))
-        obj.add("originZ", JsonPrimitive(sampler.originZ))
-
-        return obj
-    }
-
-    private fun serializeOctavePerlinNoise(sampler: OctavePerlinNoiseSampler): JsonObject {
-        val obj = JsonObject()
-
-        val octaveSamplersField = sampler.javaClass.declaredFields.first { ele -> ele.name == "octaveSamplers" }
-        octaveSamplersField.trySetAccessible()
-        val octaveSamplers = octaveSamplersField.get(sampler) as Array<*>
-        val octaveSamplerArray = JsonArray()
-        for (octaveSampler in octaveSamplers) {
-            octaveSamplerArray.add(serializePerlinNoise(octaveSampler as PerlinNoiseSampler))
-        }
-        obj.add("octaveSamplers", octaveSamplerArray)
-
-        val firstOctaveField = sampler.javaClass.declaredFields.first { ele -> ele.name == "firstOctave" }
-        firstOctaveField.trySetAccessible()
-        val firstOctave = firstOctaveField.get(sampler) as Int
-        obj.add("firstOctave", JsonPrimitive(firstOctave))
-
-        val amplitudesField = sampler.javaClass.declaredFields.first { ele -> ele.name == "amplitudes" }
-        amplitudesField.trySetAccessible()
-        val amplitudes = amplitudesField.get(sampler) as DoubleList
-        val amplitudesArray = JsonArray()
-        for (amplitude in amplitudes.stream()) {
-            amplitudesArray.add(amplitude)
-        }
-        obj.add("amplitudes", amplitudesArray)
-
-        val persistenceField = sampler.javaClass.declaredFields.first { ele -> ele.name == "persistence" }
-        persistenceField.trySetAccessible()
-        val persistence = persistenceField.get(sampler) as Double
-        obj.add("persistence", JsonPrimitive(persistence))
-
-        val lacunarityField = sampler.javaClass.declaredFields.first { ele -> ele.name == "lacunarity" }
-        lacunarityField.trySetAccessible()
-        val lacunarity = lacunarityField.get(sampler) as Double
-        obj.add("lacunarity", JsonPrimitive(lacunarity))
-
-        val maxValueField = sampler.javaClass.declaredFields.first { ele -> ele.name == "maxValue" }
-        maxValueField.trySetAccessible()
-        val maxValue = maxValueField.get(sampler) as Double
-        obj.add("maxValue", JsonPrimitive(maxValue))
-
-        return obj
-    }
-
-    private fun serializeValue(name: String, obj: Any): JsonElement {
+    private fun serializeValue(name: String, obj: Any, parent: String): JsonElement {
         return when(obj) {
+            is DensityFunction -> serializeFunction(obj)
+            is Noise -> JsonPrimitive(obj.noiseData.key.get().value.path)
+            is Spline<*,*> -> serializeSpline(obj)
             is Int -> JsonPrimitive(obj)
-            is Float -> JsonPrimitive(obj)
-            is Double -> JsonPrimitive(obj)
+            is Float -> {
+                /*
+                if (obj.isNaN()) {
+                    throw Exception("Bad float ($name) from $parent")
+                }
+                 */
+                JsonPrimitive(obj)}
+            is Double -> {
+                /*
+                if (obj.isNaN()) {
+                    throw Exception("Bad double ($name) from $parent")
+                }
+                 */
+                JsonPrimitive(obj)
+            }
             is Boolean -> JsonPrimitive(obj)
             is String -> JsonPrimitive(obj)
             is Char -> JsonPrimitive(obj)
             is Enum<*> -> JsonPrimitive(obj.name)
-            is Noise -> JsonPrimitive(obj.noiseData.key.get().value.path)
-            is Spline<*,*> -> serializeSpline(obj)
-            is OctavePerlinNoiseSampler -> serializeOctavePerlinNoise(obj)
-            is DensityFunction -> serializeFunction(obj)
-            else -> throw Exception("Unknown value to serialize: $obj ($name)")
+            else -> throw Exception("Unknown value to serialize: $obj ($name) from $parent")
         }
     }
 
@@ -159,9 +106,30 @@ class DensityFunctions : Extractor.Extractor {
 
         obj.add("_class", JsonPrimitive(function.javaClass.simpleName))
 
+        val value = JsonObject()
         for (field in function.javaClass.declaredFields) {
             if (field.name.first().isUpperCase()) {
                 // We only want to serialize the used values
+                continue
+            }
+
+            // These are constant
+            if (function.javaClass.simpleName == "BlendDensity") {
+                if (field.name == "maxValue") {
+                    continue
+                }
+                if (field.name == "minValue") {
+                    continue
+                }
+            }
+
+            if (function is DensityFunctionTypes.Spline) {
+                value.add("minValue", JsonPrimitive(function.minValue()))
+                value.add("maxValue", JsonPrimitive(function.maxValue()))
+            }
+
+            // These aren't used
+            if (field.name.startsWith("field_")) {
                 continue
             }
 
@@ -170,10 +138,16 @@ class DensityFunctions : Extractor.Extractor {
             when (fieldValue) {
                 // SimplexNoiseSampler is initialized with a random value during runtime
                 is SimplexNoiseSampler -> continue
+                // OctavePerlinNoiseSampler is initialized with a random value during runtime
+                is OctavePerlinNoiseSampler -> continue
             }
 
-            val serialized = serializeValue(field.name, fieldValue)
-            obj.add(field.name, serialized)
+            val serialized = serializeValue(field.name, fieldValue, function.javaClass.simpleName)
+            value.add(field.name, serialized)
+        }
+
+        if (!value.isEmpty) {
+            obj.add("value", value)
         }
 
         return obj
