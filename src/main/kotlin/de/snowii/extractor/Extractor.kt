@@ -48,7 +48,8 @@ class Extractor : ModInitializer {
             MultiNoise(),
             Translations(),
             DensityFunctions(),
-        )
+            DensityFunctions().Tests()
+            )
 
         val outputDirectory: Path
         try {

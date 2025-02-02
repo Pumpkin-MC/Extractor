@@ -7,9 +7,11 @@ import com.google.gson.JsonPrimitive
 import de.snowii.extractor.Extractor
 import it.unimi.dsi.fastutil.doubles.DoubleList
 import net.minecraft.registry.BuiltinRegistries
+import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
 
 import net.minecraft.server.MinecraftServer
+import net.minecraft.util.Identifier
 import net.minecraft.util.math.Spline
 import net.minecraft.util.math.noise.OctavePerlinNoiseSampler
 import net.minecraft.util.math.noise.PerlinNoiseSampler
@@ -185,5 +187,42 @@ class DensityFunctions : Extractor.Extractor {
             topLevelJson.add(key.value.path, obj)
         }
         return topLevelJson
+    }
+
+    // Dump the building blocks of the density functions to validate proper results
+    inner class Tests : Extractor.Extractor {
+        override fun fileName(): String = "density_function_tests.json"
+
+        override fun extract(server: MinecraftServer): JsonElement {
+            val topLevelJson = JsonObject()
+
+            val functionNames = arrayOf(
+                "overworld/base_3d_noise",
+                "overworld/caves/entrances",
+                "overworld/caves/noodle",
+                "overworld/caves/pillars",
+                "overworld/caves/spaghetti_2d",
+                "overworld/caves/spaghetti_2d_thickness_modulator",
+                "overworld/caves/spaghetti_roughness_function",
+                "overworld/offset",
+                "overworld/depth",
+                "overworld/factor",
+                "overworld/sloped_cheese"
+                )
+
+            val lookup = BuiltinRegistries.createWrapperLookup()
+            val functionLookup = lookup.getOrThrow(RegistryKeys.DENSITY_FUNCTION)
+            for (functionName in functionNames) {
+                val functionKey =
+                    RegistryKey.of(
+                        RegistryKeys.DENSITY_FUNCTION,
+                        Identifier.ofVanilla(functionName)
+                    )
+                val function = functionLookup.getOrThrow(functionKey).value()
+                topLevelJson.add(functionName, serializeFunction(function))
+            }
+
+            return topLevelJson
+        }
     }
 }
