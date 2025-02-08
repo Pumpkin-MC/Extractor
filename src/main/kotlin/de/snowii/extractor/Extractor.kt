@@ -44,7 +44,7 @@ class Extractor : ModInitializer {
             Entities(),
             Items(),
             Blocks(),
-            Tests(),
+            ChunkDumpTests(),
             MultiNoise(),
             Translations(),
             DensityFunctions(),
