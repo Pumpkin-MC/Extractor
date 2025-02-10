@@ -20,10 +20,12 @@ class MessageType : Extractor.Extractor {
             server.registryManager.getOrThrow(RegistryKeys.MESSAGE_TYPE)
         for (type in messageTypeRegistry) {
             val json = JsonObject()
-            json.addProperty("id", messageTypeRegistry.getRawId(type)!!);
-            json.add("components",MessageType.CODEC.encodeStart(
-                RegistryOps.of(JsonOps.INSTANCE, server.registryManager), type
-            ).getOrThrow())
+            json.addProperty("id", messageTypeRegistry.getRawId(type))
+            json.add(
+                "components", MessageType.CODEC.encodeStart(
+                    RegistryOps.of(JsonOps.INSTANCE, server.registryManager), type
+                ).getOrThrow()
+            )
             messagesJson.add(
                 messageTypeRegistry.getId(type)!!.path,
                 json

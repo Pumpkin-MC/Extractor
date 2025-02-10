@@ -3,9 +3,13 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.block.Block
+import net.minecraft.loot.LootTable
 import net.minecraft.registry.Registries
+import net.minecraft.registry.RegistryKey
+import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
@@ -31,7 +35,16 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("translation_key", block.translationKey)
             blockJson.addProperty("hardness", block.hardness)
             blockJson.addProperty("item_id", Registries.ITEM.getRawId(block.asItem()))
-
+            if (block.lootTableKey.isPresent) {
+                val table = server.reloadableRegistries
+                    .getLootTable(block.lootTableKey.get() as RegistryKey<LootTable?>)
+                blockJson.add(
+                    "loot_table", LootTable::CODEC.get().encodeStart(
+                        RegistryOps.of(JsonOps.INSTANCE, server.registryManager),
+                        table
+                    ).getOrThrow()
+                )
+            }
             val propsJson = JsonArray()
             for (prop in block.stateManager.properties) {
                 val propJson = JsonObject()
