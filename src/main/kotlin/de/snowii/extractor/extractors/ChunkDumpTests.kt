@@ -20,8 +20,13 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
 import kotlin.system.exitProcess
 
-class ChunkDumpTests : Extractor.Extractor {
-    override fun fileName(): String = "chunk.json"
+class ChunkDumpTests(
+    private val filename: String,
+    private val chunkX: Int,
+    private val chunkZ: Int,
+    private val allowedWrappers: Iterable<String>
+) : Extractor.Extractor {
+    override fun fileName(): String = this.filename
 
     private fun createFluidLevelSampler(settings: ChunkGeneratorSettings): AquiferSampler.FluidLevelSampler {
         val fluidLevel = AquiferSampler.FluidLevel(-54, Blocks.LAVA.defaultState)
@@ -100,26 +105,27 @@ class ChunkDumpTests : Extractor.Extractor {
         return null
     }
 
-    inner class WrapperRemoverVisitor(private val wrappersToKeep: Iterable<String>): DensityFunctionVisitor {
+    inner class WrapperRemoverVisitor(private val wrappersToKeep: Iterable<String>) : DensityFunctionVisitor {
         override fun apply(densityFunction: DensityFunction?): DensityFunction {
             when (densityFunction) {
                 is DensityFunctionTypes.Wrapper -> {
                     val name = densityFunction.type().toString()
                     if (wrappersToKeep.contains(name)) {
-                        println("Keeping " + name)
                         return densityFunction
                     }
                     return this.apply(densityFunction.wrapped())
                 }
+
                 is RegistryEntryHolder -> {
                     return this.apply(densityFunction.function.value())
                 }
+
                 else -> return densityFunction!!
             }
         }
     }
 
-    inner class WrapperValidateVisitor(private val wrappersToKeep: Iterable<String>): DensityFunctionVisitor {
+    inner class WrapperValidateVisitor(private val wrappersToKeep: Iterable<String>) : DensityFunctionVisitor {
         override fun apply(densityFunction: DensityFunction?): DensityFunction {
             when (densityFunction) {
                 is DensityFunctionTypes.Wrapper -> {
@@ -129,9 +135,11 @@ class ChunkDumpTests : Extractor.Extractor {
                     }
                     throw Exception(name + "is still in the function!")
                 }
+
                 is RegistryEntryHolder -> {
                     return this.apply(densityFunction.function.value())
                 }
+
                 else -> return densityFunction!!
             }
         }
@@ -160,7 +168,7 @@ class ChunkDumpTests : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonArray()
         val seed = 0L
-        val chunkPos = ChunkPos(0, 0)
+        val chunkPos = ChunkPos(this.chunkX, this.chunkZ)
 
         val lookup = BuiltinRegistries.createWrapperLookup()
         val wrapper = lookup.getOrThrow(RegistryKeys.CHUNK_GENERATOR_SETTINGS)
@@ -170,9 +178,8 @@ class ChunkDumpTests : Extractor.Extractor {
         val settings = ref.value()
         val config = NoiseConfig.create(settings, noiseParams, seed)
         // Always have cellcache wrappers
-        val allowed = arrayListOf("Interpolated")
-        removeWrappers(config, allowed)
-        config.noiseRouter.apply(WrapperValidateVisitor(allowed))
+        removeWrappers(config, this.allowedWrappers)
+        config.noiseRouter.apply(WrapperValidateVisitor(this.allowedWrappers))
 
         // Overworld shape config
         val shape = GenerationShapeConfig(-64, 384, 1, 2)
@@ -188,43 +195,6 @@ class ChunkDumpTests : Extractor.Extractor {
                     }
                 }, settings, createFluidLevelSampler(settings), Blender.getNoBlending()
             )
-
-        /*
-        testSampler.sampleEndDensity(0)
-        testSampler.onSampledCellCorners(0,0)
-        var good = false
-        for (field in testSampler.javaClass.declaredFields) {
-            if (field.name.equals("caches")) {
-                field.trySetAccessible()
-                val caches = field.get(testSampler) as List<DensityFunction>;
-                assert(caches.size == 1)
-                val cellCache = caches[0]
-                var good2 = false
-                for (field in cellCache.javaClass.declaredFields) {
-                    if (field.name.equals("cache")) {
-                        field.trySetAccessible()
-                        val cache = field.get(cellCache) as DoubleArray
-                        cache.forEach { value ->
-                            topLevelJson.add(value)
-                        }
-                        return topLevelJson
-
-                        good2 = true
-                        break
-                    }
-                }
-                if (!good2) {
-                    throw Exception("Failed to find cell cache's cache")
-                }
-                good = true
-                break
-            }
-        }
-        if (!good) {
-            throw Exception("Failed to find cell caches")
-        }
-         */
-
 
         val data = populateNoise(chunkPos.startX, chunkPos.startZ, testSampler, shape, settings)
         data?.forEach { state ->

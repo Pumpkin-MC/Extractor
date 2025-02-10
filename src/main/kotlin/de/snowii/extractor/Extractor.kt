@@ -46,12 +46,48 @@ class Extractor : ModInitializer {
             Entities(),
             Items(),
             Blocks(),
-            ChunkDumpTests(),
             MultiNoise(),
             Translations(),
             DensityFunctions(),
-            DensityFunctions().Tests()
+            DensityFunctions().Tests(),
             DamageTypes(),
+            ChunkDumpTests(
+                "no_blend_no_beard_0_0.chunk",
+                0,
+                0,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
+            ),
+            ChunkDumpTests(
+                "no_blend_no_beard_7_4.chunk",
+                7,
+                4,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
+            ),
+            ChunkDumpTests(
+                "no_blend_no_beard_only_cell_cache_0_0.chunk",
+                0,
+                0,
+                ArrayList()
+            ),
+            ChunkDumpTests(
+                "no_blend_no_beard_only_cell_cache_flat_cache_0_0.chunk",
+                0,
+                0,
+                arrayListOf("FlatCache")
+            ),
+            ChunkDumpTests(
+                "no_blend_no_beard_only_cell_cache_interpolated_0_0.chunk",
+                0,
+                0,
+                arrayListOf("Interpolated")
+            ),
+            ChunkDumpTests(
+                "no_blend_no_beard_only_cell_cache_once_cache_0_0.chunk",
+                0,
+                0,
+                arrayListOf("CacheOnce")
+            ),
+>>>>>>> e87daad (add extractors for chunk tests)
         )
 
         val outputDirectory: Path
