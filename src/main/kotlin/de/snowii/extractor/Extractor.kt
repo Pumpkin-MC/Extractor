@@ -87,7 +87,6 @@ class Extractor : ModInitializer {
                 0,
                 arrayListOf("CacheOnce")
             ),
->>>>>>> e87daad (add extractors for chunk tests)
         )
 
         val outputDirectory: Path
