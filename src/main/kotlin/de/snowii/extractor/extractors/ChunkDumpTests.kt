@@ -104,7 +104,30 @@ class ChunkDumpTests : Extractor.Extractor {
         override fun apply(densityFunction: DensityFunction?): DensityFunction {
             when (densityFunction) {
                 is DensityFunctionTypes.Wrapper -> {
+                    val name = densityFunction.type().toString()
+                    if (wrappersToKeep.contains(name)) {
+                        println("Keeping " + name)
+                        return densityFunction
+                    }
                     return this.apply(densityFunction.wrapped())
+                }
+                is RegistryEntryHolder -> {
+                    return this.apply(densityFunction.function.value())
+                }
+                else -> return densityFunction!!
+            }
+        }
+    }
+
+    inner class WrapperValidateVisitor(private val wrappersToKeep: Iterable<String>): DensityFunctionVisitor {
+        override fun apply(densityFunction: DensityFunction?): DensityFunction {
+            when (densityFunction) {
+                is DensityFunctionTypes.Wrapper -> {
+                    val name = densityFunction.type().toString()
+                    if (wrappersToKeep.contains(name)) {
+                        return densityFunction
+                    }
+                    throw Exception(name + "is still in the function!")
                 }
                 is RegistryEntryHolder -> {
                     return this.apply(densityFunction.function.value())
@@ -146,8 +169,10 @@ class ChunkDumpTests : Extractor.Extractor {
         val ref = wrapper.getOrThrow(ChunkGeneratorSettings.OVERWORLD)
         val settings = ref.value()
         val config = NoiseConfig.create(settings, noiseParams, seed)
-        // Only have cellcache wrappers
-        removeWrappers(config, ArrayList())
+        // Always have cellcache wrappers
+        val allowed = arrayListOf("Interpolated")
+        removeWrappers(config, allowed)
+        config.noiseRouter.apply(WrapperValidateVisitor(allowed))
 
         // Overworld shape config
         val shape = GenerationShapeConfig(-64, 384, 1, 2)
