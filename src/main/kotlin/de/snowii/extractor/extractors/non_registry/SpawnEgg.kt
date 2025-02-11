@@ -16,11 +16,11 @@ class SpawnEgg : Extractor.Extractor {
         val eggJson = JsonObject()
 
         for (spawnEggItem in SpawnEggItem.getAll()) {
-            val type = spawnEggItem.getEntityType(server.registryManager, spawnEggItem.defaultStack);
+            val type = spawnEggItem.getEntityType(server.registryManager, spawnEggItem.defaultStack)
             eggJson.addProperty(
                 Registries.ITEM.getRawId(spawnEggItem).toString(),
                 Registries.ENTITY_TYPE.getId(type).path
-            );
+            )
         }
         return eggJson
     }

@@ -6,6 +6,7 @@ import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.block.Block
+import net.minecraft.block.ExperienceDroppingBlock
 import net.minecraft.loot.LootTable
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
@@ -35,6 +36,14 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("translation_key", block.translationKey)
             blockJson.addProperty("hardness", block.hardness)
             blockJson.addProperty("item_id", Registries.ITEM.getRawId(block.asItem()))
+            if (block is ExperienceDroppingBlock) {
+                blockJson.add(
+                    "experience", ExperienceDroppingBlock.CODEC.codec().encodeStart(
+                        RegistryOps.of(JsonOps.INSTANCE, server.registryManager),
+                        block,
+                    ).getOrThrow()
+                )
+            }
             if (block.lootTableKey.isPresent) {
                 val table = server.reloadableRegistries
                     .getLootTable(block.lootTableKey.get() as RegistryKey<LootTable?>)

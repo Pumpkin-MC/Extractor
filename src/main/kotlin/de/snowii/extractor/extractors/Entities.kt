@@ -25,7 +25,6 @@ class Entities : Extractor.Extractor {
             entityJson.addProperty("id", Registries.ENTITY_TYPE.getRawId(entityType))
             val entity = entityType.create(server.overworld!!, SpawnReason.NATURAL)
             if (entity != null) {
-
                 if (entity is LivingEntity) {
                     entityJson.addProperty("max_health", entity.maxHealth)
                 }

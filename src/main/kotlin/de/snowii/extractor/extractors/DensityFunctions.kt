@@ -1,20 +1,17 @@
 package de.snowii.extractor.extractors
 
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import de.snowii.extractor.Extractor
-import it.unimi.dsi.fastutil.doubles.DoubleList
 import net.minecraft.registry.BuiltinRegistries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
-
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Spline
 import net.minecraft.util.math.noise.OctavePerlinNoiseSampler
-import net.minecraft.util.math.noise.PerlinNoiseSampler
 import net.minecraft.util.math.noise.SimplexNoiseSampler
 import net.minecraft.world.gen.densityfunction.DensityFunction
 import net.minecraft.world.gen.densityfunction.DensityFunction.Noise
@@ -25,11 +22,11 @@ import net.minecraft.world.gen.noise.NoiseRouter
 class DensityFunctions : Extractor.Extractor {
     override fun fileName(): String = "density_function.json"
 
-    private fun serializeSpline(spline: Spline<*,*>): JsonObject {
+    private fun serializeSpline(spline: Spline<*, *>): JsonObject {
         val obj = JsonObject()
 
-        when(spline) {
-            is Spline.Implementation<*,*> -> {
+        when (spline) {
+            is Spline.Implementation<*, *> -> {
                 obj.add("_type", JsonPrimitive("standard"))
 
                 val value = JsonObject()
@@ -56,7 +53,8 @@ class DensityFunctions : Extractor.Extractor {
 
                 obj.add("value", value)
             }
-            is Spline.FixedFloatFunction<*,*> -> {
+
+            is Spline.FixedFloatFunction<*, *> -> {
                 obj.add("_type", JsonPrimitive("fixed"))
 
                 val value = JsonObject()
@@ -64,6 +62,7 @@ class DensityFunctions : Extractor.Extractor {
 
                 obj.add("value", value)
             }
+
             else -> throw Exception("Unknown spline: $obj (${obj.javaClass})")
         }
 
@@ -71,10 +70,10 @@ class DensityFunctions : Extractor.Extractor {
     }
 
     private fun serializeValue(name: String, obj: Any, parent: String): JsonElement {
-        return when(obj) {
+        return when (obj) {
             is DensityFunction -> serializeFunction(obj)
             is Noise -> JsonPrimitive(obj.noiseData.key.get().value.path)
-            is Spline<*,*> -> serializeSpline(obj)
+            is Spline<*, *> -> serializeSpline(obj)
             is Int -> JsonPrimitive(obj)
             is Float -> {
                 /*
@@ -82,7 +81,9 @@ class DensityFunctions : Extractor.Extractor {
                     throw Exception("Bad float ($name) from $parent")
                 }
                  */
-                JsonPrimitive(obj)}
+                JsonPrimitive(obj)
+            }
+
             is Double -> {
                 /*
                 if (obj.isNaN()) {
@@ -91,6 +92,7 @@ class DensityFunctions : Extractor.Extractor {
                  */
                 JsonPrimitive(obj)
             }
+
             is Boolean -> JsonPrimitive(obj)
             is String -> JsonPrimitive(obj)
             is Char -> JsonPrimitive(obj)
@@ -208,7 +210,7 @@ class DensityFunctions : Extractor.Extractor {
                 "overworld/depth",
                 "overworld/factor",
                 "overworld/sloped_cheese"
-                )
+            )
 
             val lookup = BuiltinRegistries.createWrapperLookup()
             val functionLookup = lookup.getOrThrow(RegistryKeys.DENSITY_FUNCTION)
