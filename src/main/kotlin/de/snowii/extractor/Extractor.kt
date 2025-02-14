@@ -98,7 +98,7 @@ class Extractor : ModInitializer {
             return
         }
 
-        val gson = GsonBuilder().disableHtmlEscaping().create()
+        val gson = GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create()
 
         ServerLifecycleEvents.SERVER_STARTED.register(ServerLifecycleEvents.ServerStarted { server: MinecraftServer ->
             val timeInMillis = measureTimeMillis {
