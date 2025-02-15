@@ -78,6 +78,7 @@ class Blocks : Extractor.Extractor {
                 stateJson.addProperty("luminance", state.luminance)
                 stateJson.addProperty("burnable", state.isBurnable)
                 stateJson.addProperty("tool_required", state.isToolRequired)
+                stateJson.addProperty("hardness", state.getHardness(null, null))
                 if (state.isOpaque) {
                     stateJson.addProperty("opacity", state.opacity)
                 }
