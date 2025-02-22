@@ -25,6 +25,7 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] Noise Parameters
 - [x] Particles
 - [x] Recipes
+- [x] Status Effects
 - [x] Screens
 - [x] Spawn Eggs
 - [x] Sounds

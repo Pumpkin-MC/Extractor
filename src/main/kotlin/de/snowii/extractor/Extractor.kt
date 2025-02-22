@@ -34,6 +34,7 @@ class Extractor : ModInitializer {
             EntityAttributes(),
             ChunkStatus(),
             MessageType(),
+            StatusEffects(),
             SoundCategory(),
             EntityPose(),
             GameEvent(),
