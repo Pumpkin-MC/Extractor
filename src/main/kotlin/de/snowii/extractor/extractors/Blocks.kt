@@ -35,6 +35,7 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("name", Registries.BLOCK.getId(block).path)
             blockJson.addProperty("translation_key", block.translationKey)
             blockJson.addProperty("hardness", block.hardness)
+            blockJson.addProperty("blast_resistance", block.blastResistance)
             blockJson.addProperty("item_id", Registries.ITEM.getRawId(block.asItem()))
             if (block is ExperienceDroppingBlock) {
                 blockJson.add(
