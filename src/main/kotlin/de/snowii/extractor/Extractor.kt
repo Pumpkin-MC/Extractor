@@ -33,6 +33,7 @@ class Extractor : ModInitializer {
             Particles(),
             EntityAttributes(),
             ChunkStatus(),
+            EntityStatuses(),
             MessageType(),
             StatusEffects(),
             SoundCategory(),
