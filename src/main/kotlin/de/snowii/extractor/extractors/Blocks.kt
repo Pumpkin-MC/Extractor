@@ -60,17 +60,8 @@ class Blocks : Extractor.Extractor {
             }
             val propsJson = JsonArray()
             for (prop in block.stateManager.properties) {
-                val propJson = JsonObject()
-
-                propJson.addProperty("name", prop.name)
-
-                val valuesJson = JsonArray()
-                for (value in prop.values) {
-                    valuesJson.add(value.toString().lowercase())
-                }
-                propJson.add("values", valuesJson)
-
-                propsJson.add(propJson)
+                // Use the hashcode to map to a property later; the property names are not unique
+                propsJson.add(prop.hashCode())
             }
             blockJson.add("properties", propsJson)
 

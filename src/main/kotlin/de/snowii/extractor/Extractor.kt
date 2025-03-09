@@ -55,6 +55,7 @@ class Extractor : ModInitializer {
             DensityFunctions().Tests(),
             DamageTypes(),
             Fluids(),
+            Properties(),
             ChunkDumpTests(
                 "no_blend_no_beard_0_0.chunk",
                 0,
@@ -92,7 +93,7 @@ class Extractor : ModInitializer {
                 arrayListOf("CacheOnce")
             ),
         )
-
+        
         val outputDirectory: Path
         try {
             outputDirectory = Files.createDirectories(Paths.get("pumpkin_extractor_output"))
