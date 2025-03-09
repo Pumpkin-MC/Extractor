@@ -3,24 +3,24 @@ package de.snowii.extractor.extractors.non_registry
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
+import net.minecraft.entity.EntityStatuses
 import net.minecraft.server.MinecraftServer
-import net.minecraft.world.WorldEvents
 
-class WorldEvent : Extractor.Extractor {
+class EntityStatuses : Extractor.Extractor {
     override fun fileName(): String {
-        return "world_event.json"
+        return "entity_statuses.json"
     }
 
     override fun extract(server: MinecraftServer): JsonElement {
         val jsonObject = JsonObject()
-        val fields = WorldEvents::class.java.declaredFields
+        val fields = EntityStatuses::class.java.declaredFields
 
         for (field in fields) {
-            if (field.type == Int::class.javaPrimitiveType || field.type == Int::class.java) {
+            if (field.type == Byte::class.javaPrimitiveType || field.type == Byte::class.java) {
                 if (field.name.startsWith("field")) continue
                 field.isAccessible = true
-                val intValue = field.get(null) as Int
-                jsonObject.addProperty(field.name, intValue)
+                val byteValue = field.get(null) as Byte
+                jsonObject.addProperty(field.name, byteValue)
             }
         }
 
