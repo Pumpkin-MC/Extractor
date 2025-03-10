@@ -12,16 +12,14 @@ class EntityAttributes : Extractor.Extractor {
     }
 
     override fun extract(server: MinecraftServer): JsonElement {
-        val screensJson = JsonObject()
+        val finalJson = JsonObject()
         for (attribute in Registries.ATTRIBUTE) {
-
-
-            screensJson.addProperty(
+            finalJson.addProperty(
                 Registries.ATTRIBUTE.getId(attribute)!!.path,
                 attribute.defaultValue
             )
         }
 
-        return screensJson
+        return finalJson
     }
 }

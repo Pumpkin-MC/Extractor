@@ -63,7 +63,7 @@ class MultiNoise : Extractor.Extractor {
         json.add("erosion", parameterRangeToJson(hypercube.erosion()))
         json.add("depth", parameterRangeToJson(hypercube.depth()))
         json.add("weirdness", parameterRangeToJson(hypercube.weirdness()))
-        json.addProperty("offset", MultiNoiseUtil.toFloat(hypercube.offset()))
+        json.addProperty("offset", hypercube.offset())
 
         return json
     }
@@ -73,8 +73,8 @@ class MultiNoise : Extractor.Extractor {
      */
     private fun parameterRangeToJson(parameterRange: MultiNoiseUtil.ParameterRange): JsonArray {
         val array = JsonArray()
-        array.add(MultiNoiseUtil.toFloat(parameterRange.min()))
-        array.add(MultiNoiseUtil.toFloat(parameterRange.max()))
+        array.add(parameterRange.min())
+        array.add(parameterRange.max())
         return array
     }
 }
