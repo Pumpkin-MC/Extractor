@@ -98,7 +98,7 @@ class Extractor : ModInitializer {
                 arrayListOf("CacheOnce")
             ),
         )
-        
+
         val outputDirectory: Path
         try {
             outputDirectory = Files.createDirectories(Paths.get("pumpkin_extractor_output"))

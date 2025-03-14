@@ -35,6 +35,7 @@ class Properties : Extractor.Extractor {
                         is BooleanProperty -> {
                             property.addProperty("type", "boolean")
                         }
+
                         is IntProperty -> {
                             var min: Int? = null
                             var max: Int? = null
@@ -50,6 +51,7 @@ class Properties : Extractor.Extractor {
                             property.addProperty("min", min!!)
                             property.addProperty("max", max!!)
                         }
+
                         is EnumProperty<*> -> {
                             property.addProperty("type", "enum")
                             val enumArr = JsonArray()
@@ -58,6 +60,7 @@ class Properties : Extractor.Extractor {
                             }
                             property.add("values", enumArr)
                         }
+
                         else -> throw Exception("Unhandled property type: " + maybeProperty.javaClass.toString())
                     }
 
