@@ -9,6 +9,7 @@ import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.HeightLimitView
+import net.minecraft.world.chunk.ChunkStatus
 import net.minecraft.world.chunk.ProtoChunk
 import net.minecraft.world.chunk.UpgradeData
 import net.minecraft.world.gen.WorldPresets
@@ -39,7 +40,6 @@ class BiomeDumpTests: Extractor.Extractor {
                 val biomeData = JsonObject()
                 biomeData.addProperty("x", x)
                 biomeData.addProperty("z", z)
-                val data = JsonArray()
 
                 val chunkPos = ChunkPos(x, z)
                 val chunk = ProtoChunk(
@@ -47,14 +47,29 @@ class BiomeDumpTests: Extractor.Extractor {
                     HeightLimitView.create(options.chunkGenerator.minimumY, options.chunkGenerator.worldHeight),
                     server.registryManager.getOrThrow(RegistryKeys.BIOME), null
                 )
-
                 options.chunkGenerator.populateBiomes(config, Blender.getNoBlending(), null, chunk)
-                for (section in chunk.sectionArray) {
-                    section.biomeContainer.forEachValue { entry ->
-                        val id = server.registryManager.getOrThrow(RegistryKeys.BIOME).getRawId(entry.value())
-                        data.add(id)
+                chunk.status = ChunkStatus.BIOMES
+
+                val minChunkY = chunk.bottomY.shr(2)
+                val maxChunkY = chunk.topYInclusive.shr(2)
+                val data = JsonArray()
+                for (chunkX in 0..3) {
+                    for (chunkZ in 0..3) {
+                        for (chunkY in minChunkY..maxChunkY) {
+                            val chunkData = JsonArray()
+                            val biome = chunk.getBiomeForNoiseGen(chunkX, chunkY, chunkZ)
+                            val id = server.registryManager.getOrThrow(RegistryKeys.BIOME).getRawId(biome.value())
+
+                            chunkData.add(chunkX)
+                            chunkData.add(chunkY)
+                            chunkData.add(chunkZ)
+                            chunkData.add(id)
+
+                            data.add(chunkData)
+                        }
                     }
                 }
+
                 biomeData.add("data", data)
                 topLevelJson.add(biomeData)
             }
