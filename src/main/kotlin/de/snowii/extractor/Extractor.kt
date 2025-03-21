@@ -25,6 +25,7 @@ class Extractor : ModInitializer {
     override fun onInitialize() {
         logger.info("Starting Pumpkin Extractor")
         val extractors = arrayOf(
+            /*
             Sounds(),
             Recipes(),
             Biome(),
@@ -92,6 +93,8 @@ class Extractor : ModInitializer {
                 0,
                 arrayListOf("CacheOnce")
             ),
+            */
+            BiomeDumpTests(),
         )
         
         val outputDirectory: Path
