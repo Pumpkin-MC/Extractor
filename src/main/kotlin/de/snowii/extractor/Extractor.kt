@@ -28,7 +28,9 @@ class Extractor : ModInitializer {
             /*
             Sounds(),
             Recipes(),
+            */
             Biome(),
+            /*
             WorldEvent(),
             Carver(),
             ScoreboardDisplaySlot(),
@@ -54,7 +56,10 @@ class Extractor : ModInitializer {
             WorldGenFeatures(),
             Items(),
             Blocks(),
+            */
             MultiNoise(),
+            MultiNoise().Sample(),
+            /*
             ChunkGenSetting(),
             Translations(),
             DensityFunctions(),
