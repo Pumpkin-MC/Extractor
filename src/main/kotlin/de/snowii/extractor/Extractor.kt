@@ -105,6 +105,7 @@ class Extractor : ModInitializer {
             ),
             */
             BiomeDumpTests(),
+            BiomeDumpTests().MultiNoiseBiomeSourceTest(),
         )
         
         val outputDirectory: Path
