@@ -11,11 +11,7 @@ import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.HeightLimitView
-import net.minecraft.world.biome.source.BiomeCoords
-import net.minecraft.world.biome.source.BiomeSource
-import net.minecraft.world.biome.source.MultiNoiseBiomeSource
-import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList
-import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterLists
+import net.minecraft.world.biome.source.*
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.MultiNoiseSampler
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.NoiseHypercube
 import net.minecraft.world.chunk.ChunkStatus
@@ -35,7 +31,7 @@ class BiomeDumpTests: Extractor.Extractor {
 
     companion object {
         fun createMultiNoiseSampler(config: NoiseConfig, sampler: ChunkNoiseSampler): MultiNoiseSampler {
-            var createMultiNoiseSampler: Method? = null;
+            var createMultiNoiseSampler: Method? = null
             for (m: Method in sampler.javaClass.declaredMethods) {
                 if (m.name == "createMultiNoiseSampler") {
                     m.trySetAccessible()
@@ -58,6 +54,8 @@ class BiomeDumpTests: Extractor.Extractor {
         val topLevelJson = JsonArray()
         val seed = 0L
 
+        val biomeRegistry = server.registryManager.getOrThrow(RegistryKeys.BIOME)
+
         // Overworld shape config
         val shape = GenerationShapeConfig(-64, 384, 1, 2)
 
@@ -79,10 +77,11 @@ class BiomeDumpTests: Extractor.Extractor {
             }
         }
 
-        println(options.chunkGenerator)
+        println(biomeRegistry.javaClass)
+        println(options.chunkGenerator.javaClass)
 
-        for (x in 0..0) {
-            for (z in 0..0) {
+        for (x in 5..5) {
+            for (z in 5..5) {
                 val biomeData = JsonObject()
                 biomeData.addProperty("x", x)
                 biomeData.addProperty("z", z)
@@ -91,7 +90,7 @@ class BiomeDumpTests: Extractor.Extractor {
                 val chunk = ProtoChunk(
                     chunkPos, UpgradeData.NO_UPGRADE_DATA,
                     HeightLimitView.create(options.chunkGenerator.minimumY, options.chunkGenerator.worldHeight),
-                    server.registryManager.getOrThrow(RegistryKeys.BIOME), null
+                    biomeRegistry, null
                 )
 
                 if (chunk.hasBelowZeroRetrogen()) {
@@ -110,54 +109,25 @@ class BiomeDumpTests: Extractor.Extractor {
                             }
                         }, settings, null, Blender.getNoBlending()
                     )
+                val testNoiseSampler = createMultiNoiseSampler(config, testSampler)
 
-                var chunkNoiseSampler: Field? = null
-                for (f: Field in chunk.javaClass.fields) {
-                    if (f.name == "chunkNoiseSampler") {
-                        f.trySetAccessible()
-                        chunkNoiseSampler = f
-                    }
-                }
-
-                // Set the chunk noise sampler to a known value (basically this is needed to set the beardifier / structure accessor)
-                chunkNoiseSampler!!.set(chunk, testSampler)
-
-                options.chunkGenerator.populateBiomes(config, Blender.getNoBlending(), null, chunk)
+                // We don't have retro gen and we don't want structures
+                chunk.populateBiomes(biomeSource!!, testNoiseSampler)
                 chunk.status = ChunkStatus.BIOMES
 
                 val minBiomeY = BiomeCoords.fromBlock(chunk.bottomY)
                 val maxBiomeY = BiomeCoords.fromBlock(chunk.topYInclusive)
 
-                val startBiomeX = BiomeCoords.fromBlock(chunkPos.startX)
-                val startBiomeZ = BiomeCoords.fromBlock(chunkPos.startZ)
-
                 val data = JsonArray()
-                for (biomeX in 0..0) {
-                    for (biomeZ in 0..0) {
-                        for (biomeY in 0..0) {
+                for (biomeX in 0..3) {
+                    for (biomeZ in 0..3) {
+                        for (biomeY in minBiomeY..maxBiomeY) {
                             val chunkData = JsonArray()
 
                             val biome = chunk.getBiomeForNoiseGen(biomeX, biomeY, biomeZ)
-                            val id = server.registryManager.getOrThrow(RegistryKeys.BIOME).getRawId(biome.value())
-
-                            if (biomeX == 0 && biomeZ == 0) {
-                                val biomeName = server.registryManager.getOrThrow(RegistryKeys.BIOME).getId(biome.value())
-                                println(biomeX.toString() + " " + biomeY.toString() +  " " + biomeZ.toString() + " " + biomeName)
-                            }
-
-                            // Assert that the chunk biomes are the same as the multi noise sampler biomes
-                            val sampler = chunkNoiseSampler.get(chunk) as ChunkNoiseSampler
-                            if (sampler != testSampler) {
-                                throw Exception("Chunk noise sampler was changed!")
-                            }
-                            val noiseSampler = createMultiNoiseSampler(config, sampler)
-
-                            val testBiome = biomeSource!!.getBiome(startBiomeX + biomeX, biomeY, startBiomeZ + biomeZ, noiseSampler)
-                            println(testBiome.key)
-                            val testBiomeId = server.registryManager.getOrThrow(RegistryKeys.BIOME).getRawId(testBiome.value())
-                            if (id != testBiomeId) {
-                                throw Exception("Expected biome to match multi noise biome source " + id.toString() + " vs " + testBiomeId.toString())
-                            }
+                            // Weird work-around because java
+                            val entry = biomeRegistry.get(biome.key.orElseThrow())
+                            val id = biomeRegistry.getRawIdOrThrow(entry)
 
                             chunkData.add(biomeX)
                             chunkData.add(biomeY)
