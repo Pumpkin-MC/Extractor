@@ -106,6 +106,7 @@ class Extractor : ModInitializer {
             */
             BiomeDumpTests(),
             BiomeDumpTests().MultiNoiseBiomeSourceTest(),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_0_0.chunk", 0, 0)
         )
         
         val outputDirectory: Path
