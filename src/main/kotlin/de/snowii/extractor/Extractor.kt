@@ -104,9 +104,13 @@ class Extractor : ModInitializer {
                 arrayListOf("CacheOnce")
             ),
             */
+            ChunkDumpTests.NoiseDump("no_blend_no_beard_-595_544.chunk", -595, 544, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
+            ChunkDumpTests.NoiseDump("no_blend_no_beard_-119_183.chunk", -119, 183, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
             BiomeDumpTests(),
             BiomeDumpTests().MultiNoiseBiomeSourceTest(),
-            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_0_0.chunk", 0, 0)
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_0_0.chunk", 0, 0),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_badlands_-595_544.chunk", -595, 544),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_frozen_ocean_-119_183.chunk", -119, 183)
         )
         
         val outputDirectory: Path
