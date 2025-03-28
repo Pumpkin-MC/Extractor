@@ -54,6 +54,7 @@ class Extractor : ModInitializer {
             Items(),
             Blocks(),
             MultiNoise(),
+            MultiNoise().Sample(),
             ChunkGenSetting(),
             Translations(),
             DensityFunctions(),
@@ -61,44 +62,51 @@ class Extractor : ModInitializer {
             DamageTypes(),
             Fluids(),
             Properties(),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,
                 0,
                 arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_7_4.chunk",
                 7,
                 4,
                 arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_0_0.chunk",
                 0,
                 0,
                 ArrayList()
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_flat_cache_0_0.chunk",
                 0,
                 0,
                 arrayListOf("FlatCache")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_interpolated_0_0.chunk",
                 0,
                 0,
                 arrayListOf("Interpolated")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_once_cache_0_0.chunk",
                 0,
                 0,
                 arrayListOf("CacheOnce")
             ),
+            ChunkDumpTests.NoiseDump("no_blend_no_beard_-595_544.chunk", -595, 544, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
+            ChunkDumpTests.NoiseDump("no_blend_no_beard_-119_183.chunk", -119, 183, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
+            BiomeDumpTests(),
+            BiomeDumpTests().MultiNoiseBiomeSourceTest(),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_0_0.chunk", 0, 0),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_badlands_-595_544.chunk", -595, 544),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_frozen_ocean_-119_183.chunk", -119, 183)
         )
-
+        
         val outputDirectory: Path
         try {
             outputDirectory = Files.createDirectories(Paths.get("pumpkin_extractor_output"))
