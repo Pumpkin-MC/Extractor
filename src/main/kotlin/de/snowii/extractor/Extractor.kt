@@ -25,12 +25,9 @@ class Extractor : ModInitializer {
     override fun onInitialize() {
         logger.info("Starting Pumpkin Extractor")
         val extractors = arrayOf(
-            /*
             Sounds(),
             Recipes(),
-            */
             Biome(),
-            /*
             WorldEvent(),
             Carver(),
             ScoreboardDisplaySlot(),
@@ -56,10 +53,8 @@ class Extractor : ModInitializer {
             WorldGenFeatures(),
             Items(),
             Blocks(),
-            */
             MultiNoise(),
             MultiNoise().Sample(),
-            /*
             ChunkGenSetting(),
             Translations(),
             DensityFunctions(),
@@ -67,43 +62,42 @@ class Extractor : ModInitializer {
             DamageTypes(),
             Fluids(),
             Properties(),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,
                 0,
                 arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_7_4.chunk",
                 7,
                 4,
                 arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_0_0.chunk",
                 0,
                 0,
                 ArrayList()
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_flat_cache_0_0.chunk",
                 0,
                 0,
                 arrayListOf("FlatCache")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_interpolated_0_0.chunk",
                 0,
                 0,
                 arrayListOf("Interpolated")
             ),
-            ChunkDumpTests(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_only_cell_cache_once_cache_0_0.chunk",
                 0,
                 0,
                 arrayListOf("CacheOnce")
             ),
-            */
             ChunkDumpTests.NoiseDump("no_blend_no_beard_-595_544.chunk", -595, 544, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
             ChunkDumpTests.NoiseDump("no_blend_no_beard_-119_183.chunk", -119, 183, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
             BiomeDumpTests(),
