@@ -70,6 +70,8 @@ class Blocks : Extractor.Extractor {
                 val stateJson = JsonObject()
                 stateJson.addProperty("id", Block.getRawIdFromState(state))
                 stateJson.addProperty("air", state.isAir)
+                stateJson.addProperty("is_solid", state.isSolid)
+                stateJson.addProperty("instrument", state.instrument.name)
                 stateJson.addProperty("is_liquid", state.isLiquid)
                 stateJson.addProperty("luminance", state.luminance)
                 stateJson.addProperty("burnable", state.isBurnable)

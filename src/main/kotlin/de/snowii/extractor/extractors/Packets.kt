@@ -4,12 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
-import io.netty.buffer.ByteBuf
 import net.minecraft.network.NetworkPhase
-import net.minecraft.network.NetworkState
-import net.minecraft.network.PacketByteBuf
-import net.minecraft.network.listener.ClientPacketListener
-import net.minecraft.network.listener.ServerCrashSafePacketListener
 import net.minecraft.network.packet.PacketType
 import net.minecraft.network.state.*
 import net.minecraft.server.MinecraftServer
@@ -24,31 +19,30 @@ class Packets : Extractor.Extractor {
         val packetsJson = JsonObject()
 
         val clientBound = arrayOf(
-            QueryStates.S2C_FACTORY,
-            LoginStates.S2C_FACTORY,
-            ConfigurationStates.S2C_FACTORY,
-            PlayStateFactories.S2C
+            QueryStates.S2C_FACTORY.buildUnbound(),
+            LoginStates.S2C_FACTORY.buildUnbound(),
+            ConfigurationStates.S2C_FACTORY.buildUnbound(),
+            PlayStateFactories.S2C.buildUnbound()
         )
 
         val serverBound = arrayOf(
-            HandshakeStates.C2S_FACTORY,
-            QueryStates.C2S_FACTORY,
-            LoginStates.C2S_FACTORY,
-            ConfigurationStates.C2S_FACTORY,
-            PlayStateFactories.C2S
+            HandshakeStates.C2S_FACTORY.buildUnbound(),
+            QueryStates.C2S_FACTORY.buildUnbound(),
+            LoginStates.C2S_FACTORY.buildUnbound(),
+            ConfigurationStates.C2S_FACTORY.buildUnbound(),
+            PlayStateFactories.C2S.buildUnbound()
         )
         val serverBoundJson = serializeServerBound(serverBound)
         val clientBoundJson = serializeClientBound(clientBound)
 
         packetsJson.add("serverbound", serverBoundJson)
         packetsJson.add("clientbound", clientBoundJson)
-
         return packetsJson
     }
 
 
     private fun serializeServerBound(
-        packets: Array<NetworkState.Factory<out ServerCrashSafePacketListener, out ByteBuf>>
+        packets: Array<NetworkState.Unbound>
     ): JsonObject {
         val handshakeArray = JsonArray()
         val statusArray = JsonArray()
@@ -77,7 +71,7 @@ class Packets : Extractor.Extractor {
     }
 
     private fun serializeClientBound(
-        packets: Array<NetworkState.Factory<out ClientPacketListener, out PacketByteBuf>>
+        packets: Array<NetworkState.Unbound>
     ): JsonObject {
         val statusArray = JsonArray()
         val loginArray = JsonArray()
