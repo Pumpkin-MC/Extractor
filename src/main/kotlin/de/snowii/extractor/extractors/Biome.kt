@@ -19,11 +19,13 @@ class Biome : Extractor.Extractor {
         val biomeRegistry =
             server.registryManager.getOrThrow(RegistryKeys.BIOME)
         for (biome in biomeRegistry) {
+            val json = Biome.CODEC.encodeStart(
+                RegistryOps.of(JsonOps.INSTANCE, server.registryManager),
+                biome
+            ).getOrThrow().asJsonObject
+            json.addProperty("id", biomeRegistry.getRawId(biome))
             biomeData.add(
-                biomeRegistry.getId(biome)!!.path, Biome.CODEC.encodeStart(
-                    RegistryOps.of(JsonOps.INSTANCE, server.registryManager),
-                    biome
-                ).getOrThrow()
+                biomeRegistry.getId(biome)!!.path, json
             )
 
         }
