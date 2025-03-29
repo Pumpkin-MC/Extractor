@@ -91,6 +91,10 @@ declare -a FILES=(
   "density_function_tests.json"
   "no_blend_no_beard_13579_-6_11.chunk"
   "no_blend_no_beard_surface_13579_-6_11.chunk"
+  "no_blend_no_beard_13579_-2_15.chunk"
+  "no_blend_no_beard_surface_13579_-2_15.chunk"
+  "no_blend_no_beard_surface_13579_-7_9.chunk"
+  "biome_mixer.json"
 )
 
 for FILE in "${FILES[@]}"; do
