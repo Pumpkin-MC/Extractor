@@ -24,10 +24,12 @@ class Extractor : ModInitializer {
 
     override fun onInitialize() {
         logger.info("Starting Pumpkin Extractor")
+
         val extractors = arrayOf(
             Sounds(),
             Recipes(),
             Biome(),
+            BiomeMixerTest(),
             WorldEvent(),
             Carver(),
             ScoreboardDisplaySlot(),
@@ -114,7 +116,8 @@ class Extractor : ModInitializer {
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_badlands_-595_544.chunk", 0, -595, 544),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_frozen_ocean_-119_183.chunk", 0, -119, 183),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-6_11.chunk", 13579, -6, 11),
-                    ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-2_15.chunk", 13579, -2, 15)
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-2_15.chunk", 13579, -2, 15),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-7_9.chunk", 13579, -7, 9)
         )
         
         val outputDirectory: Path
