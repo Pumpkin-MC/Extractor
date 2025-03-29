@@ -3,23 +3,24 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import com.mojang.serialization.Codec
-import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
-import net.minecraft.registry.*
+import net.minecraft.registry.BuiltinRegistries
+import net.minecraft.registry.DynamicRegistryManager
+import net.minecraft.registry.Registry
+import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.ChunkPos
 import net.minecraft.world.biome.Biome
 import net.minecraft.world.biome.source.MultiNoiseBiomeSource
 import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList
-import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList.Preset
 import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterLists
 import net.minecraft.world.biome.source.util.MultiNoiseUtil
-import net.minecraft.world.biome.source.util.MultiNoiseUtil.MultiNoiseSampler
-import net.minecraft.world.biome.source.util.MultiNoiseUtil.NoiseHypercube
-import net.minecraft.world.biome.source.util.MultiNoiseUtil.ParameterRange
-import net.minecraft.world.gen.chunk.*
+import net.minecraft.world.biome.source.util.MultiNoiseUtil.*
+import net.minecraft.world.gen.chunk.Blender
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings
+import net.minecraft.world.gen.chunk.ChunkNoiseSampler
+import net.minecraft.world.gen.chunk.GenerationShapeConfig
 import net.minecraft.world.gen.densityfunction.DensityFunction.EachApplier
 import net.minecraft.world.gen.densityfunction.DensityFunction.NoisePos
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes
@@ -27,10 +28,7 @@ import net.minecraft.world.gen.noise.NoiseConfig
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredFunctions
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.declaredMembers
 
 /**
  * An extractor for MultiNoiseBiomeSourceParameterList that fully serializes NoiseHypercube and ParameterRange data.
@@ -93,7 +91,8 @@ class MultiNoise : Extractor.Extractor {
         val multiNoiseRegistry: Registry<MultiNoiseBiomeSourceParameterList> =
             registryManager.getOrThrow(RegistryKeys.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST)
 
-        val overworldBiomeSource = MultiNoiseBiomeSource.create(multiNoiseRegistry.getOrThrow(MultiNoiseBiomeSourceParameterLists.OVERWORLD))
+        val overworldBiomeSource =
+            MultiNoiseBiomeSource.create(multiNoiseRegistry.getOrThrow(MultiNoiseBiomeSourceParameterLists.OVERWORLD))
 
         var method: Method? = null
         for (m: Method in overworldBiomeSource::class.java.declaredMethods) {
@@ -104,7 +103,7 @@ class MultiNoise : Extractor.Extractor {
             }
         }
 
-        val entries = method!!.invoke(overworldBiomeSource) as MultiNoiseUtil.Entries<RegistryEntry<Biome>>
+        val entries = method!!.invoke(overworldBiomeSource) as Entries<RegistryEntry<Biome>>
 
         var field: Field? = null
         for (f: Field in entries::class.java.declaredFields) {
@@ -117,7 +116,7 @@ class MultiNoise : Extractor.Extractor {
         return extract_search_tree(field!!.get(entries))
     }
 
-    inner class Sample: Extractor.Extractor {
+    inner class Sample : Extractor.Extractor {
         override fun fileName(): String {
             return "multi_noise_sample_no_blend_no_beard_0_0_0.json"
         }
@@ -126,7 +125,7 @@ class MultiNoise : Extractor.Extractor {
             val rootJson = JsonArray()
 
             val seed = 0L
-            val chunkPos = ChunkPos(0,0)
+            val chunkPos = ChunkPos(0, 0)
 
             val lookup = BuiltinRegistries.createWrapperLookup()
             val wrapper = lookup.getOrThrow(RegistryKeys.CHUNK_GENERATOR_SETTINGS)
@@ -151,7 +150,7 @@ class MultiNoise : Extractor.Extractor {
                     }, settings, null, Blender.getNoBlending()
                 )
 
-            var method: KFunction<*>? = null;
+            var method: KFunction<*>? = null
             for (m: KFunction<*> in testSampler::class.declaredFunctions) {
                 if (m.name == "createMultiNoiseSampler") {
                     method = m
