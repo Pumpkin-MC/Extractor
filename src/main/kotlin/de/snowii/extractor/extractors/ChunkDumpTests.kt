@@ -290,6 +290,7 @@ class ChunkDumpTests {
 
     internal class SurfaceDump(
         private val filename: String,
+        private val seed: Long,
         private val chunkX: Int,
         private val chunkZ: Int,
         ) : Extractor.Extractor {
@@ -298,7 +299,6 @@ class ChunkDumpTests {
         override fun extract(server: MinecraftServer): JsonElement {
             val biomeRegistry = server.registryManager.getOrThrow(RegistryKeys.BIOME)
 
-            val seed = 0L
             val chunkPos = ChunkPos(this.chunkX, this.chunkZ)
 
             val lookup = BuiltinRegistries.createWrapperLookup()
@@ -372,6 +372,7 @@ class ChunkDumpTests {
 
     internal class NoiseDump(
         private val filename: String,
+        private val seed: Long,
         private val chunkX: Int,
         private val chunkZ: Int,
         private val allowedWrappers: Iterable<String>
@@ -381,7 +382,6 @@ class ChunkDumpTests {
         // Dumps a chunk to an array of block state ids
         override fun extract(server: MinecraftServer): JsonElement {
             val topLevelJson = JsonArray()
-            val seed = 0L
             val chunkPos = ChunkPos(this.chunkX, this.chunkZ)
 
             val lookup = BuiltinRegistries.createWrapperLookup()
