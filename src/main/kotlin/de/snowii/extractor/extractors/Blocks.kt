@@ -75,7 +75,9 @@ class Blocks : Extractor.Extractor {
                 stateJson.addProperty("is_liquid", state.isLiquid)
                 stateJson.addProperty("luminance", state.luminance)
                 stateJson.addProperty("burnable", state.isBurnable)
+                stateJson.addProperty("is_full_cube", state.isFullCube(EmptyBlockView.INSTANCE, BlockPos.ORIGIN))
                 stateJson.addProperty("tool_required", state.isToolRequired)
+                stateJson.addProperty("piston_behavior", state.pistonBehavior.name)
                 stateJson.addProperty("hardness", state.getHardness(null, null))
                 if (state.isOpaque) {
                     stateJson.addProperty("opacity", state.opacity)
