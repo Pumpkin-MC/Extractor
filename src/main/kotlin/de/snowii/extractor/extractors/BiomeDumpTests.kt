@@ -18,7 +18,10 @@ import net.minecraft.world.chunk.ChunkStatus
 import net.minecraft.world.chunk.ProtoChunk
 import net.minecraft.world.chunk.UpgradeData
 import net.minecraft.world.gen.WorldPresets
-import net.minecraft.world.gen.chunk.*
+import net.minecraft.world.gen.chunk.Blender
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings
+import net.minecraft.world.gen.chunk.ChunkNoiseSampler
+import net.minecraft.world.gen.chunk.GenerationShapeConfig
 import net.minecraft.world.gen.densityfunction.DensityFunction.EachApplier
 import net.minecraft.world.gen.densityfunction.DensityFunction.NoisePos
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes
@@ -26,7 +29,7 @@ import net.minecraft.world.gen.noise.NoiseConfig
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
-class BiomeDumpTests: Extractor.Extractor {
+class BiomeDumpTests : Extractor.Extractor {
     override fun fileName(): String = "biome_no_blend_no_beard_0.json"
 
     companion object {
@@ -147,7 +150,7 @@ class BiomeDumpTests: Extractor.Extractor {
         return topLevelJson
     }
 
-    inner class MultiNoiseBiomeSourceTest: Extractor.Extractor {
+    inner class MultiNoiseBiomeSourceTest : Extractor.Extractor {
         override fun fileName(): String = "multi_noise_biome_source_test.json"
 
         override fun extract(server: MinecraftServer): JsonElement {
@@ -155,11 +158,14 @@ class BiomeDumpTests: Extractor.Extractor {
             val multiNoiseRegistry: Registry<MultiNoiseBiomeSourceParameterList> =
                 registryManager.getOrThrow(RegistryKeys.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST)
 
-            val overworldBiomeSource = MultiNoiseBiomeSource.create(multiNoiseRegistry.getOrThrow(
-                MultiNoiseBiomeSourceParameterLists.OVERWORLD))
+            val overworldBiomeSource = MultiNoiseBiomeSource.create(
+                multiNoiseRegistry.getOrThrow(
+                    MultiNoiseBiomeSourceParameterLists.OVERWORLD
+                )
+            )
 
             val seed = 0L
-            val chunkPos = ChunkPos(0,0)
+            val chunkPos = ChunkPos(0, 0)
 
             val lookup = BuiltinRegistries.createWrapperLookup()
             val wrapper = lookup.getOrThrow(RegistryKeys.CHUNK_GENERATOR_SETTINGS)

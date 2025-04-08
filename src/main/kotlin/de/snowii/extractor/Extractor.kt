@@ -119,7 +119,7 @@ class Extractor : ModInitializer {
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-2_15.chunk", 13579, -2, 15),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-7_9.chunk", 13579, -7, 9)
         )
-        
+
         val outputDirectory: Path
         try {
             outputDirectory = Files.createDirectories(Paths.get("pumpkin_extractor_output"))

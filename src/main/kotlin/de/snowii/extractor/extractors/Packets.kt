@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
+import net.minecraft.SharedConstants
 import net.minecraft.network.NetworkPhase
 import net.minecraft.network.packet.PacketType
 import net.minecraft.network.state.*
@@ -34,7 +35,7 @@ class Packets : Extractor.Extractor {
         )
         val serverBoundJson = serializeServerBound(serverBound)
         val clientBoundJson = serializeClientBound(clientBound)
-
+        packetsJson.addProperty("version", SharedConstants.getProtocolVersion())
         packetsJson.add("serverbound", serverBoundJson)
         packetsJson.add("clientbound", clientBoundJson)
         return packetsJson
@@ -61,6 +62,7 @@ class Packets : Extractor.Extractor {
                 }
             }
         }
+
         val finalJson = JsonObject()
         finalJson.add("handshake", handshakeArray)
         finalJson.add("status", statusArray)

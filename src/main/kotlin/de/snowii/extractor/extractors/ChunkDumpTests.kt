@@ -18,10 +18,11 @@ import net.minecraft.world.biome.source.BiomeAccess
 import net.minecraft.world.biome.source.BiomeSource
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.MultiNoiseSampler
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.NoiseHypercube
-import net.minecraft.world.chunk.*
+import net.minecraft.world.chunk.Chunk
 import net.minecraft.world.chunk.ChunkStatus
+import net.minecraft.world.chunk.ProtoChunk
+import net.minecraft.world.chunk.UpgradeData
 import net.minecraft.world.gen.HeightContext
-import net.minecraft.world.gen.StructureAccessor
 import net.minecraft.world.gen.WorldPresets
 import net.minecraft.world.gen.chunk.*
 import net.minecraft.world.gen.densityfunction.DensityFunction
@@ -31,7 +32,6 @@ import net.minecraft.world.gen.densityfunction.DensityFunctionTypes.RegistryEntr
 import net.minecraft.world.gen.noise.NoiseConfig
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import java.util.function.Function
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
 import kotlin.system.exitProcess
@@ -293,7 +293,7 @@ class ChunkDumpTests {
         private val seed: Long,
         private val chunkX: Int,
         private val chunkZ: Int,
-        ) : Extractor.Extractor {
+    ) : Extractor.Extractor {
         override fun fileName(): String = this.filename
 
         override fun extract(server: MinecraftServer): JsonElement {
@@ -347,7 +347,16 @@ class ChunkDumpTests {
 
             val biomeMixer = BiomeAccess(chunk, BiomeAccess.hashSeed(seed))
             val heightContext = HeightContext(options.chunkGenerator, chunk)
-            config.surfaceBuilder.buildSurface(config, biomeMixer, biomeRegistry, settings.usesLegacyRandom, heightContext, chunk, testSampler, settings.surfaceRule)
+            config.surfaceBuilder.buildSurface(
+                config,
+                biomeMixer,
+                biomeRegistry,
+                settings.usesLegacyRandom,
+                heightContext,
+                chunk,
+                testSampler,
+                settings.surfaceRule
+            )
             chunk.status = ChunkStatus.SURFACE
 
             val result = IntArray(16 * 16 * chunk.height)
