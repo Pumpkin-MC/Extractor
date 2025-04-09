@@ -86,6 +86,7 @@ class MultiNoise : Extractor.Extractor {
         return extract_tree_node(field!!.get(tree))
     }
 
+    // Only overworld and nether use multi noise sampler for biomes
     override fun extract(server: MinecraftServer): JsonElement {
         val registryManager: DynamicRegistryManager.Immutable = server.registryManager
         val multiNoiseRegistry: Registry<MultiNoiseBiomeSourceParameterList> =
@@ -103,17 +104,45 @@ class MultiNoise : Extractor.Extractor {
             }
         }
 
-        val entries = method!!.invoke(overworldBiomeSource) as Entries<RegistryEntry<Biome>>
+        val overworldEntries = method!!.invoke(overworldBiomeSource) as MultiNoiseUtil.Entries<RegistryEntry<Biome>>
 
         var field: Field? = null
-        for (f: Field in entries::class.java.declaredFields) {
+        for (f: Field in overworldEntries::class.java.declaredFields) {
             if (f.name == "tree") {
                 f.trySetAccessible()
                 field = f
             }
         }
 
-        return extract_search_tree(field!!.get(entries))
+        val overworld = extract_search_tree(field!!.get(overworldEntries))
+
+        val netherBiomeSource = MultiNoiseBiomeSource.create(multiNoiseRegistry.getOrThrow(MultiNoiseBiomeSourceParameterLists.NETHER))
+
+        method = null
+        for (m: Method in netherBiomeSource::class.java.declaredMethods) {
+            if (m.name == "getBiomeEntries") {
+                m.trySetAccessible()
+                method = m
+                break
+            }
+        }
+
+        val netherEntries = method!!.invoke(netherBiomeSource) as MultiNoiseUtil.Entries<RegistryEntry<Biome>>
+
+        field = null
+        for (f: Field in netherEntries::class.java.declaredFields) {
+            if (f.name == "tree") {
+                f.trySetAccessible()
+                field = f
+            }
+        }
+
+        val nether = extract_search_tree(field!!.get(netherEntries))
+
+        val returnValue = JsonObject()
+        returnValue.add("overworld", overworld)
+        returnValue.add("nether", nether)
+        return returnValue
     }
 
     inner class Sample : Extractor.Extractor {
