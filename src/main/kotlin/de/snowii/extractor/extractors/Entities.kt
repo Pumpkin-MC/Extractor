@@ -7,6 +7,12 @@ import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
+import net.minecraft.entity.ai.brain.Activity
+import net.minecraft.entity.ai.brain.Brain
+import net.minecraft.entity.ai.brain.MemoryModuleType
+import net.minecraft.entity.ai.brain.sensor.Sensor
+import net.minecraft.entity.ai.brain.sensor.SensorType
+import net.minecraft.entity.ai.brain.task.Task
 import net.minecraft.loot.LootTable
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
@@ -18,6 +24,77 @@ class Entities : Extractor.Extractor {
         return "entities.json"
     }
 
+    fun extractEntityBrainTasks(entity: LivingEntity): JsonArray {
+        val tasksJson = JsonArray()
+        val brain: Brain<*> = entity.brain
+        try {
+            val tasksField = brain.javaClass.getDeclaredField("tasks")
+            tasksField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
+            val tasksMap = tasksField.get(brain) as? Map<Int, Map<Activity, Set<Task<*>>>>
+            tasksMap?.forEach { (priority, activityMap) ->
+                activityMap.forEach { (activity, taskSet) ->
+                    tasksJson.add(
+                            JsonObject().apply {
+                                addProperty("activity", activity.toString())
+                                addProperty("priority", priority)
+                                val taskSetJson = JsonArray()
+                                taskSet.forEach { task ->
+                                    taskSetJson.add(task.javaClass.simpleName)
+                                }
+                                add("tasks", taskSetJson)
+                            }
+                    )
+                }
+            }
+        } catch (e: NoSuchFieldException) {
+            println("Error: 'tasks' field not found in Brain class.")
+            e.printStackTrace()
+        } catch (e: IllegalAccessException) {
+            println("Error: Could not access 'tasks' field in Brain class.")
+            e.printStackTrace()
+        }
+        return tasksJson
+    }
+
+    fun extractEntityBrainSensors(entity: LivingEntity): JsonArray {
+        val sensorsJson = JsonArray()
+        val brain: Brain<*> = entity.brain
+        try {
+            val sensorsField = brain.javaClass.getDeclaredField("sensors")
+            sensorsField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
+            val sensorsMap = sensorsField.get(brain) as? Map<SensorType<out Sensor<*>>, Sensor<*>>
+            sensorsMap?.forEach { (_, sensor) -> sensorsJson.add(sensor.javaClass.simpleName) }
+        } catch (e: NoSuchFieldException) {
+            println("Error: 'sensors' field not found in Brain class.")
+            e.printStackTrace()
+        } catch (e: IllegalAccessException) {
+            println("Error: Could not access 'sensors' field in Brain class.")
+            e.printStackTrace()
+        }
+        return sensorsJson
+    }
+
+    fun extractEntityBrainMemory(entity: LivingEntity): JsonArray {
+        val sensorsJson = JsonArray()
+        val brain: Brain<*> = entity.brain
+        try {
+            val memoriesField = brain.javaClass.getDeclaredField("memories")
+            memoriesField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
+            val memoriesMap = memoriesField.get(brain) as? Map<MemoryModuleType<*>, *>
+            memoriesMap?.forEach { (memoryType, _) ->sensorsJson.add(memoryType.toString()) }
+        } catch (e: NoSuchFieldException) {
+            println("Error: 'memories' field not found in Brain class.")
+            e.printStackTrace()
+        } catch (e: IllegalAccessException) {
+            println("Error: Could not access 'memories' field in Brain class.")
+            e.printStackTrace()
+        }
+        return sensorsJson
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val entitiesJson = JsonObject()
         for (entityType in Registries.ENTITY_TYPE) {
@@ -27,11 +104,19 @@ class Entities : Extractor.Extractor {
             if (entity != null) {
                 if (entity is LivingEntity) {
                     entityJson.addProperty("max_health", entity.maxHealth)
+                    entityJson.add("brain_tasks", extractEntityBrainTasks(entity))
+                    entityJson.add("brain_sensors", extractEntityBrainSensors(entity))
+                    entityJson.add("brain_memories", extractEntityBrainMemory(entity))
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
             }
             entityJson.addProperty("summonable", entityType.isSummonable)
             entityJson.addProperty("fire_immune", entityType.isFireImmune)
+            entityJson.addProperty("saveable", entityType.isSaveable)
+            entityJson.addProperty("spawnable_far_from_player", entityType.isSpawnableFarFromPlayer)
+            entityJson.addProperty("max_track_distance", entityType.maxTrackDistance)
+            entityJson.addProperty("spawn_group", entityType.spawnGroup.toString())
+
             val dimension = JsonArray()
             dimension.add(entityType.width)
             dimension.add(entityType.height)
