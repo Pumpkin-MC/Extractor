@@ -6,6 +6,7 @@ import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.InventoryOwner
 import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.ai.brain.Activity
 import net.minecraft.entity.ai.brain.Brain
@@ -24,6 +25,21 @@ class Entities : Extractor.Extractor {
         return "entities.json"
     }
 
+    fun detailedStringifyTask(task: Task<*>): String {
+        var type_name:String;
+        if(task.javaClass.simpleName.isEmpty())
+            type_name = "OneShot";
+        else
+            type_name = task.javaClass.simpleName;
+        return type_name +
+                "(" +
+                task::class.java.declaredFields.joinToString(", ") { field ->
+                    field.isAccessible = true // Allow access to private fields
+                    "${field.name}: ${field.get(task)}"
+                } +
+                ")"
+    }
+
     fun extractEntityBrainTasks(entity: LivingEntity): JsonArray {
         val tasksJson = JsonArray()
         val brain: Brain<*> = entity.brain
@@ -40,7 +56,7 @@ class Entities : Extractor.Extractor {
                                 addProperty("priority", priority)
                                 val taskSetJson = JsonArray()
                                 taskSet.forEach { task ->
-                                    taskSetJson.add(task.javaClass.simpleName)
+                                    taskSetJson.add(detailedStringifyTask(task))
                                 }
                                 add("tasks", taskSetJson)
                             }
@@ -65,7 +81,7 @@ class Entities : Extractor.Extractor {
             sensorsField.isAccessible = true
             @Suppress("UNCHECKED_CAST")
             val sensorsMap = sensorsField.get(brain) as? Map<SensorType<out Sensor<*>>, Sensor<*>>
-            sensorsMap?.forEach { (_, sensor) -> sensorsJson.add(sensor.javaClass.simpleName) }
+            sensorsMap?.forEach { (sensor, _) ->sensorsJson.add(Registries.SENSOR_TYPE.getId(sensor).toString())}
         } catch (e: NoSuchFieldException) {
             println("Error: 'sensors' field not found in Brain class.")
             e.printStackTrace()
@@ -84,7 +100,7 @@ class Entities : Extractor.Extractor {
             memoriesField.isAccessible = true
             @Suppress("UNCHECKED_CAST")
             val memoriesMap = memoriesField.get(brain) as? Map<MemoryModuleType<*>, *>
-            memoriesMap?.forEach { (memoryType, _) ->sensorsJson.add(memoryType.toString()) }
+            memoriesMap?.forEach { (memoryType, _) -> sensorsJson.add(memoryType.toString()) }
         } catch (e: NoSuchFieldException) {
             println("Error: 'memories' field not found in Brain class.")
             e.printStackTrace()
@@ -107,14 +123,30 @@ class Entities : Extractor.Extractor {
                     entityJson.add("brain_tasks", extractEntityBrainTasks(entity))
                     entityJson.add("brain_sensors", extractEntityBrainSensors(entity))
                     entityJson.add("brain_memories", extractEntityBrainMemory(entity))
+                    if(entity.canAvoidTraps())
+                        entityJson.addProperty("can_avoid_traps", true)
+                    if(entity.maxAir != 300)
+                        entityJson.addProperty("max_air", entity.maxAir)
+                    if(entity is InventoryOwner){
+                        entity.inventory?.let { inventory ->
+                            entityJson.addProperty("inventory_size", inventory.size())
+                        }
+                    }
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
+                entityJson.addProperty("step_height", entity.stepHeight)
+                entityJson.addProperty("can_freeze", entity.canFreeze())
+                entityJson.addProperty("can_hit", entity.canHit())
+                entityJson.addProperty("is_collidable", entity.isCollidable)
+                if(!entity.canBeHitByProjectile())
+                    entityJson.addProperty("can_be_hit_by_projectile", false)
             }
             entityJson.addProperty("summonable", entityType.isSummonable)
             entityJson.addProperty("fire_immune", entityType.isFireImmune)
             entityJson.addProperty("saveable", entityType.isSaveable)
             entityJson.addProperty("spawnable_far_from_player", entityType.isSpawnableFarFromPlayer)
             entityJson.addProperty("max_track_distance", entityType.maxTrackDistance)
+            entityJson.addProperty("track_tick_interval", entityType.trackTickInterval)
             entityJson.addProperty("spawn_group", entityType.spawnGroup.toString())
 
             val dimension = JsonArray()

@@ -86,6 +86,11 @@ class Blocks : Extractor.Extractor {
                 }
                 stateJson.addProperty("sided_transparency", state.hasSidedTransparency())
                 stateJson.addProperty("replaceable", state.isReplaceable)
+                if(state.hasComparatorOutput())
+                    stateJson.addProperty("has_comparator_output", true)
+
+                if(state.hasRandomTicks())
+                    stateJson.addProperty("has_random_ticks", true)
 
                 if (block.defaultState == state) {
                     blockJson.addProperty("default_state_id", Block.getRawIdFromState(state))
