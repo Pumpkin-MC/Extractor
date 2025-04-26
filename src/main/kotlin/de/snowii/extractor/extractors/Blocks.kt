@@ -18,6 +18,18 @@ import net.minecraft.world.EmptyBlockView
 import java.util.*
 
 class Blocks : Extractor.Extractor {
+
+    companion object {
+        private const val AIR: Int = 0b00000001
+        private const val BURNABLE: Int = 0b00000010
+        private const val TOOL_REQUIRED: Int = 0b00000100
+        private const val SIDED_TRANSPARENCY: Int = 0b00001000
+        private const val REPLACEABLE: Int = 0b00010000
+        private const val IS_LIQUID: Int = 0b00100000
+        private const val IS_SOLID: Int = 0b01000000
+        private const val IS_FULL_CUBE: Int = 0b10000000
+    }
+
     override fun fileName(): String {
         return "blocks.json"
     }
@@ -68,23 +80,27 @@ class Blocks : Extractor.Extractor {
             val statesJson = JsonArray()
             for (state in block.stateManager.states) {
                 val stateJson = JsonObject()
+                var stateFlags = 0
+                
+                if (state.isAir) stateFlags = stateFlags or AIR
+                if (state.isBurnable) stateFlags = stateFlags or BURNABLE
+                if (state.isToolRequired) stateFlags = stateFlags or TOOL_REQUIRED
+                if (state.hasSidedTransparency()) stateFlags = stateFlags or SIDED_TRANSPARENCY
+                if (state.isReplaceable) stateFlags = stateFlags or REPLACEABLE
+                if (state.isLiquid) stateFlags = stateFlags or IS_LIQUID
+                if (state.isSolid) stateFlags = stateFlags or IS_SOLID
+                if (state.isFullCube(EmptyBlockView.INSTANCE, BlockPos.ORIGIN)) stateFlags = stateFlags or IS_FULL_CUBE
+                
                 stateJson.addProperty("id", Block.getRawIdFromState(state))
-                stateJson.addProperty("air", state.isAir)
-                stateJson.addProperty("is_solid", state.isSolid)
+                stateJson.addProperty("state_flags", stateFlags and 0xFF)
                 stateJson.addProperty("instrument", state.instrument.name)
-                stateJson.addProperty("is_liquid", state.isLiquid)
                 stateJson.addProperty("luminance", state.luminance)
-                stateJson.addProperty("burnable", state.isBurnable)
-                stateJson.addProperty("is_full_cube", state.isFullCube(EmptyBlockView.INSTANCE, BlockPos.ORIGIN))
-                stateJson.addProperty("tool_required", state.isToolRequired)
                 stateJson.addProperty("piston_behavior", state.pistonBehavior.name)
                 stateJson.addProperty("hardness", state.getHardness(null, null))
                 if (state.isOpaque) {
                     stateJson.addProperty("opacity", state.opacity)
                 }
-                stateJson.addProperty("sided_transparency", state.hasSidedTransparency())
-                stateJson.addProperty("replaceable", state.isReplaceable)
-
+ 
                 if (block.defaultState == state) {
                     blockJson.addProperty("default_state_id", Block.getRawIdFromState(state))
                 }
