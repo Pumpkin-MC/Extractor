@@ -145,6 +145,7 @@ class Extractor : ModInitializer {
                 }
             }
             logger.info("Done, took ${timeInMillis}ms")
+            server.stop(false)
         })
     }
 
