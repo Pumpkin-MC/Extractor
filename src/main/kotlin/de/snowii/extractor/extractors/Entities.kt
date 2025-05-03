@@ -116,6 +116,7 @@ class Entities : Extractor.Extractor {
         for (entityType in Registries.ENTITY_TYPE) {
             val entityJson = JsonObject()
             entityJson.addProperty("id", Registries.ENTITY_TYPE.getRawId(entityType))
+            entityJson.addProperty("translation_key", entityType.translationKey)
             val entity = entityType.create(server.overworld!!, SpawnReason.NATURAL)
             if (entity != null) {
                 if (entity is LivingEntity) {
