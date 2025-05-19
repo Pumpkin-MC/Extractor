@@ -14,11 +14,22 @@ import net.minecraft.entity.ai.brain.MemoryModuleType
 import net.minecraft.entity.ai.brain.sensor.Sensor
 import net.minecraft.entity.ai.brain.sensor.SensorType
 import net.minecraft.entity.ai.brain.task.Task
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.Entity
+import net.minecraft.entity.EntityType
 import net.minecraft.loot.LootTable
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryOps
+import com.mojang.authlib.GameProfile
 import net.minecraft.server.MinecraftServer
+import net.minecraft.server.world.ServerWorld
+import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.network.packet.c2s.common.SyncedClientOptions
+import java.lang.reflect.Modifier
+import java.lang.reflect.Type
+import java.lang.reflect.ParameterizedType
+import java.util.UUID
 
 class Entities : Extractor.Extractor {
     override fun fileName(): String {
@@ -111,13 +122,80 @@ class Entities : Extractor.Extractor {
         return sensorsJson
     }
 
+    fun extractMetadataForClass(entityClass: Class<out Entity>): JsonArray {
+        val metadataJson = JsonArray()
+        val alreadyProcessedObjects: MutableSet<TrackedData<*>> = mutableSetOf()
+
+        var currentClassInHierarchy: Class<*>? = entityClass
+        while (currentClassInHierarchy != null && Entity::class.java.isAssignableFrom(currentClassInHierarchy)) {
+            for (field in currentClassInHierarchy.declaredFields) {
+                if (Modifier.isStatic(field.modifiers) && TrackedData::class.java.isAssignableFrom(field.type)) {
+                    try {
+                        field.isAccessible = true
+                        val td = field.get(null) as? TrackedData<*>
+                        if (td != null && alreadyProcessedObjects.add(td)) {
+                            val metadataEntry = JsonObject()
+
+                            metadataEntry.addProperty("field_name", field.name)
+                            metadataEntry.addProperty("network_id", td.id)
+
+                            var genericTypeName = "Unknown"
+                            val genericFieldType: Type = field.genericType
+                            if (genericFieldType is ParameterizedType) {
+                                val actualTypeArguments = genericFieldType.actualTypeArguments
+                                if (actualTypeArguments.isNotEmpty()) 
+                                    genericTypeName = actualTypeArguments[0].typeName
+                                        .replace("java.lang.", "")
+                                        .replace("java.util.", "")
+                                        .replace("org.joml.", "")
+                                        .replace("net.minecraft.", "")
+                                        .replace("com.mojang.", "")
+                                        .replace("util.math.", "")
+                                        .replace("text.", "")
+                                        .replace("particle.", "")
+                                        .replace("entity.", "")
+                                        .replace("block.", "")
+                                        .replace("passive.", "")
+                                        .replace("village.", "")
+                                        .replace("registry.entry.", "")
+                                        .replace("item.", "")
+                                        .replace("decoration.painting.", "")
+                                        .replace("nbt.", "")
+                            }
+                            metadataEntry.addProperty("type_name", genericTypeName)
+                            metadataJson.add(metadataEntry)
+                        }
+                    } catch (e: IllegalAccessException) {
+                        println("Could not access field: ${field.name} in ${currentClassInHierarchy.name} ${e.message}")
+                    } catch (e: Exception) {
+                        println("Error processing field: ${field.name} in ${currentClassInHierarchy.name} ${e.message}")
+                    }
+                }
+            }
+            currentClassInHierarchy = currentClassInHierarchy.superclass
+        }
+        return metadataJson
+    }
+
+    fun createEntity(entityType:EntityType<*>, server: MinecraftServer): Entity? {
+        if(entityType == EntityType.PLAYER){
+            val FAKE_PLAYER_UUID_STRING = "6d6d6d6d-6d6d-6d6d-6d6d-6d6d6d6d6d6d"
+            val FAKE_PLAYER_UUID: UUID = UUID.fromString(FAKE_PLAYER_UUID_STRING)
+            val FAKE_PLAYER_NAME = "[FakePlayer]Extractor"
+            val gameProfile = GameProfile(FAKE_PLAYER_UUID, FAKE_PLAYER_NAME)
+            val syncedClientOptions = SyncedClientOptions.createDefault()
+            return ServerPlayerEntity(server, server.overworld, gameProfile, syncedClientOptions)
+        }
+        else return entityType.create(server.overworld!!, SpawnReason.NATURAL)
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val entitiesJson = JsonObject()
         for (entityType in Registries.ENTITY_TYPE) {
             val entityJson = JsonObject()
             entityJson.addProperty("id", Registries.ENTITY_TYPE.getRawId(entityType))
             entityJson.addProperty("translation_key", entityType.translationKey)
-            val entity = entityType.create(server.overworld!!, SpawnReason.NATURAL)
+            val entity = createEntity(entityType, server)
             if (entity != null) {
                 if (entity is LivingEntity) {
                     entityJson.addProperty("max_health", entity.maxHealth)
@@ -141,6 +219,7 @@ class Entities : Extractor.Extractor {
                 entityJson.addProperty("is_collidable", entity.isCollidable)
                 if(!entity.canBeHitByProjectile())
                     entityJson.addProperty("can_be_hit_by_projectile", false)
+                entityJson.add("metadata", extractMetadataForClass(entity.javaClass))
             }
             entityJson.addProperty("summonable", entityType.isSummonable)
             entityJson.addProperty("fire_immune", entityType.isFireImmune)
