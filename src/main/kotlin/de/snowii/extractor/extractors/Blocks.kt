@@ -7,6 +7,7 @@ import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.block.Block
 import net.minecraft.block.ExperienceDroppingBlock
+import net.minecraft.block.SideShapeType
 import net.minecraft.loot.LootTable
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
@@ -14,6 +15,7 @@ import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.EmptyBlockView
 import java.util.*
 
@@ -28,6 +30,15 @@ class Blocks : Extractor.Extractor {
         private const val IS_LIQUID: Int = 0b00100000
         private const val IS_SOLID: Int = 0b01000000
         private const val IS_FULL_CUBE: Int = 0b10000000
+
+        private const val DOWN_SIDE_SOLID: Int = 0b00000001;
+        private const val UP_SIDE_SOLID: Int = 0b00000010;
+        private const val NORTH_SIDE_SOLID: Int = 0b00000100;
+        private const val SOUTH_SIDE_SOLID: Int = 0b00001000;
+        private const val WEST_SIDE_SOLID: Int = 0b00010000;
+        private const val EAST_SIDE_SOLID: Int = 0b00100000;
+        private const val DOWN_CENTER_SOLID: Int = 0b01000000;
+        private const val UP_CENTER_SOLID: Int = 0b10000000;
     }
 
     override fun fileName(): String {
@@ -81,6 +92,7 @@ class Blocks : Extractor.Extractor {
             for (state in block.stateManager.states) {
                 val stateJson = JsonObject()
                 var stateFlags = 0
+                var sideFlags = 0
                 
                 if (state.isAir) stateFlags = stateFlags or AIR
                 if (state.isBurnable) stateFlags = stateFlags or BURNABLE
@@ -90,9 +102,19 @@ class Blocks : Extractor.Extractor {
                 if (state.isLiquid) stateFlags = stateFlags or IS_LIQUID
                 if (state.isSolid) stateFlags = stateFlags or IS_SOLID
                 if (state.isFullCube(EmptyBlockView.INSTANCE, BlockPos.ORIGIN)) stateFlags = stateFlags or IS_FULL_CUBE
+
+                if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.DOWN)) sideFlags = sideFlags or DOWN_SIDE_SOLID
+                if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.UP)) sideFlags = sideFlags or UP_SIDE_SOLID
+                if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.NORTH)) sideFlags = sideFlags or NORTH_SIDE_SOLID
+                if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.SOUTH)) sideFlags = sideFlags or SOUTH_SIDE_SOLID
+                if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.WEST)) sideFlags = sideFlags or WEST_SIDE_SOLID
+                if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.EAST)) sideFlags = sideFlags or EAST_SIDE_SOLID
+                if (state.isSideSolid(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.DOWN, SideShapeType.CENTER)) sideFlags = sideFlags or DOWN_CENTER_SOLID
+                if (state.isSideSolid(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.UP, SideShapeType.CENTER)) sideFlags = sideFlags or UP_CENTER_SOLID
                 
                 stateJson.addProperty("id", Block.getRawIdFromState(state))
                 stateJson.addProperty("state_flags", stateFlags and 0xFF)
+                stateJson.addProperty("side_flags", sideFlags and 0xFF)
                 stateJson.addProperty("instrument", state.instrument.name)
                 stateJson.addProperty("luminance", state.luminance)
                 stateJson.addProperty("piston_behavior", state.pistonBehavior.name)
