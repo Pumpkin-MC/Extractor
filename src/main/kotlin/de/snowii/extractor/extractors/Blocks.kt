@@ -135,6 +135,14 @@ class Blocks : Extractor.Extractor {
 
                 stateJson.add("collision_shapes", collisionShapeIdxsJson)
 
+                val outlineShapeIdxsJson = JsonArray()
+                for (box in state.getOutlineShape(EmptyBlockView.INSTANCE, BlockPos.ORIGIN).boundingBoxes) {
+                    val idx = shapes.putIfAbsent(box, shapes.size)
+                    outlineShapeIdxsJson.add(Objects.requireNonNullElseGet(idx) { shapes.size - 1 })
+                }
+
+                stateJson.add("outline_shapes", outlineShapeIdxsJson)
+
                 for (blockEntity in Registries.BLOCK_ENTITY_TYPE) {
                     if (blockEntity.supports(state)) {
                         stateJson.addProperty("block_entity_type", Registries.BLOCK_ENTITY_TYPE.getRawId(blockEntity))
