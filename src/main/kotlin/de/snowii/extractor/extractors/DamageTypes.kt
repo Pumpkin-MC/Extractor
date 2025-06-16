@@ -3,13 +3,13 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.entity.damage.DamageType
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 
-class DamageTypes : Extractor.Extractor {
+class DamageTypes : IExtractor {
     override fun fileName(): String {
         return "damage_type.json"
     }

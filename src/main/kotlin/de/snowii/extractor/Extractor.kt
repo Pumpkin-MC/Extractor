@@ -3,7 +3,6 @@ package de.snowii.extractor
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import de.snowii.extractor.extractors.*
-import de.snowii.extractor.extractors.non_registry.*
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
@@ -15,6 +14,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.ServiceLoader
 import kotlin.system.measureTimeMillis
 
 
@@ -25,45 +25,20 @@ class Extractor : ModInitializer {
     override fun onInitialize() {
         logger.info("Starting Pumpkin Extractor")
 
-        val extractors = arrayOf(
-            Sounds(),
-            Recipes(),
-            Biome(),
-            BiomeMixerTest(),
-            WorldEvent(),
-            Carver(),
-            ScoreboardDisplaySlot(),
-            Particles(),
-            EntityAttributes(),
-            ChunkStatus(),
-            EntityStatuses(),
-            MessageType(),
-            StatusEffects(),
-            SoundCategory(),
-            EntityPose(),
-            GameEvent(),
-            GameRules(),
-            SpawnEgg(),
-            SyncedRegistries(),
-            ChunkGenSetting(),
-            Packets(),
-            Screens(),
-            PlacedFeatures(),
-            Tags(),
-            NoiseParameters(),
-            Entities(),
-            WorldGenFeatures(),
-            Items(),
-            Blocks(),
-            MultiNoise(),
+        // Use ServiceLoader to automatically discover extractors
+        val serviceExtractors: List<IExtractor> = ServiceLoader.load(IExtractor::class.java).toList()
+        
+        // Add complex extractors that require parameters manually
+        val manualExtractors = listOf<IExtractor>(
+            // Standalone extractors that need manual instantiation
+            BiomeDumpTests(),
+            
+            // Inner class instances
             MultiNoise().Sample(),
-            ChunkGenSetting(),
-            Translations(),
-            DensityFunctions(),
             DensityFunctions().Tests(),
-            DamageTypes(),
-            Fluids(),
-            Properties(),
+            BiomeDumpTests().MultiNoiseBiomeSourceTest(),
+            
+            // Parameterized test extractors
             ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,
@@ -110,8 +85,6 @@ class Extractor : ModInitializer {
             ChunkDumpTests.NoiseDump("no_blend_no_beard_-119_183.chunk", 0, -119, 183, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
             ChunkDumpTests.NoiseDump("no_blend_no_beard_13579_-6_11.chunk", 13579, -6, 11, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
             ChunkDumpTests.NoiseDump("no_blend_no_beard_13579_-2_15.chunk", 13579, -2, 15, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
-            BiomeDumpTests(),
-            BiomeDumpTests().MultiNoiseBiomeSourceTest(),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_0_0.chunk", 0, 0, 0),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_badlands_-595_544.chunk", 0, -595, 544),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_frozen_ocean_-119_183.chunk", 0, -119, 183),
@@ -119,6 +92,11 @@ class Extractor : ModInitializer {
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-2_15.chunk", 13579, -2, 15),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-7_9.chunk", 13579, -7, 9)
         )
+        
+        // Combine both service-loaded and manual extractors
+        val extractors = serviceExtractors + manualExtractors
+        
+        logger.info("Discovered ${serviceExtractors.size} extractors via ServiceLoader and ${manualExtractors.size} manual extractors, total: ${extractors.size}")
 
         val outputDirectory: Path
         try {
@@ -146,12 +124,5 @@ class Extractor : ModInitializer {
             }
             logger.info("Done, took ${timeInMillis}ms")
         })
-    }
-
-    interface Extractor {
-        fun fileName(): String
-
-        @Throws(Exception::class)
-        fun extract(server: MinecraftServer): JsonElement
     }
 }

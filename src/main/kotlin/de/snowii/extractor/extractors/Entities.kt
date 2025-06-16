@@ -4,7 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnReason
 import net.minecraft.loot.LootTable
@@ -13,7 +13,7 @@ import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 
-class Entities : Extractor.Extractor {
+class Entities : IExtractor {
     override fun fileName(): String {
         return "entities.json"
     }

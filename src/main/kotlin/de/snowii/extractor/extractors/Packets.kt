@@ -3,7 +3,7 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.SharedConstants
 import net.minecraft.network.NetworkPhase
 import net.minecraft.network.packet.PacketType
@@ -11,7 +11,7 @@ import net.minecraft.network.state.*
 import net.minecraft.server.MinecraftServer
 
 
-class Packets : Extractor.Extractor {
+class Packets : IExtractor {
     override fun fileName(): String {
         return "packets.json"
     }

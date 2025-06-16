@@ -4,7 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.BuiltinRegistries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
@@ -19,7 +19,7 @@ import net.minecraft.world.gen.densityfunction.DensityFunctionTypes
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes.RegistryEntryHolder
 import net.minecraft.world.gen.noise.NoiseRouter
 
-class DensityFunctions : Extractor.Extractor {
+class DensityFunctions : IExtractor {
     override fun fileName(): String = "density_function.json"
 
     private fun serializeSpline(spline: Spline<*, *>): JsonObject {
@@ -192,7 +192,7 @@ class DensityFunctions : Extractor.Extractor {
     }
 
     // Dump the building blocks of the density functions to validate proper results
-    inner class Tests : Extractor.Extractor {
+    inner class Tests : IExtractor {
         override fun fileName(): String = "density_function_tests.json"
 
         override fun extract(server: MinecraftServer): JsonElement {

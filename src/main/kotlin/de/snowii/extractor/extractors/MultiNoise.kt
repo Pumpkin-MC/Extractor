@@ -3,7 +3,7 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.BuiltinRegistries
 import net.minecraft.registry.DynamicRegistryManager
 import net.minecraft.registry.Registry
@@ -33,7 +33,7 @@ import kotlin.reflect.full.declaredFunctions
 /**
  * An extractor for MultiNoiseBiomeSourceParameterList that fully serializes NoiseHypercube and ParameterRange data.
  */
-class MultiNoise : Extractor.Extractor {
+class MultiNoise : IExtractor {
 
     override fun fileName(): String {
         return "multi_noise_biome_tree.json"
@@ -145,7 +145,7 @@ class MultiNoise : Extractor.Extractor {
         return returnValue
     }
 
-    inner class Sample : Extractor.Extractor {
+    inner class Sample : IExtractor {
         override fun fileName(): String {
             return "multi_noise_sample_no_blend_no_beard_0_0_0.json"
         }

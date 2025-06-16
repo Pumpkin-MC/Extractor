@@ -3,12 +3,12 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.tag.TagPacketSerializer
 import net.minecraft.server.MinecraftServer
 
 
-class Tags : Extractor.Extractor {
+class Tags : IExtractor {
     override fun fileName(): String {
         return "tags.json"
     }

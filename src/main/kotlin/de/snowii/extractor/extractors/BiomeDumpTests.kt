@@ -3,7 +3,7 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.BuiltinRegistries
 import net.minecraft.registry.DynamicRegistryManager
 import net.minecraft.registry.Registry
@@ -29,7 +29,7 @@ import net.minecraft.world.gen.noise.NoiseConfig
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
-class BiomeDumpTests : Extractor.Extractor {
+class BiomeDumpTests : IExtractor {
     override fun fileName(): String = "biome_no_blend_no_beard_0.json"
 
     companion object {
@@ -150,7 +150,7 @@ class BiomeDumpTests : Extractor.Extractor {
         return topLevelJson
     }
 
-    inner class MultiNoiseBiomeSourceTest : Extractor.Extractor {
+    inner class MultiNoiseBiomeSourceTest : IExtractor {
         override fun fileName(): String = "multi_noise_biome_source_test.json"
 
         override fun extract(server: MinecraftServer): JsonElement {

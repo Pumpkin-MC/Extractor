@@ -2,11 +2,11 @@ package de.snowii.extractor.extractors.non_registry
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.entity.EntityPose
 import net.minecraft.server.MinecraftServer
 
-class EntityPose : Extractor.Extractor {
+class EntityPose : IExtractor {
     override fun fileName(): String {
         return "entity_pose.json"
     }

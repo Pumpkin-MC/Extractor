@@ -2,11 +2,11 @@ package de.snowii.extractor.extractors
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.Registries
 import net.minecraft.server.MinecraftServer
 
-class EntityAttributes : Extractor.Extractor {
+class EntityAttributes : IExtractor {
     override fun fileName(): String {
         return "attributes.json"
     }

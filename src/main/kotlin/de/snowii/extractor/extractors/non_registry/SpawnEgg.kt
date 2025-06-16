@@ -2,12 +2,12 @@ package de.snowii.extractor.extractors.non_registry
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.item.SpawnEggItem
 import net.minecraft.registry.Registries
 import net.minecraft.server.MinecraftServer
 
-class SpawnEgg : Extractor.Extractor {
+class SpawnEgg : IExtractor {
     override fun fileName(): String {
         return "spawn_egg.json"
     }

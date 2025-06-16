@@ -2,14 +2,14 @@ package de.snowii.extractor.extractors
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.MathHelper
 import net.minecraft.world.biome.source.BiomeAccess
 import net.minecraft.world.biome.source.SeedMixer
 
-class BiomeMixerTest : Extractor.Extractor {
+class BiomeMixerTest : IExtractor {
     override fun fileName(): String {
         return "biome_mixer.json"
     }

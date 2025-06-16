@@ -4,7 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.block.Block
 import net.minecraft.block.ExperienceDroppingBlock
 import net.minecraft.block.SideShapeType
@@ -19,7 +19,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.EmptyBlockView
 import java.util.*
 
-class Blocks : Extractor.Extractor {
+class Blocks : IExtractor {
 
     companion object {
         private const val AIR: Int = 0b00000001
