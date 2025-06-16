@@ -2,7 +2,7 @@ package de.snowii.extractor.extractors
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.SharedConstants
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
@@ -293,7 +293,7 @@ class ChunkDumpTests {
         private val seed: Long,
         private val chunkX: Int,
         private val chunkZ: Int,
-    ) : Extractor.Extractor {
+    ) : IExtractor {
         override fun fileName(): String = this.filename
 
         override fun extract(server: MinecraftServer): JsonElement {
@@ -385,7 +385,7 @@ class ChunkDumpTests {
         private val chunkX: Int,
         private val chunkZ: Int,
         private val allowedWrappers: Iterable<String>
-    ) : Extractor.Extractor {
+    ) : IExtractor {
         override fun fileName(): String = this.filename
 
         // Dumps a chunk to an array of block state ids

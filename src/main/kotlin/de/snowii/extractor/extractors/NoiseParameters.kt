@@ -3,13 +3,13 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.math.noise.DoublePerlinNoiseSampler
 
-class NoiseParameters : Extractor.Extractor {
+class NoiseParameters : IExtractor {
     override fun fileName(): String {
         return "noise_parameters.json"
     }

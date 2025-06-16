@@ -2,12 +2,12 @@ package de.snowii.extractor.extractors
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.resource.featuretoggle.FeatureFlags
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.GameRules
 
-class GameRules : Extractor.Extractor {
+class GameRules : IExtractor {
     override fun fileName(): String {
         return "game_rules.json"
     }

@@ -4,12 +4,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.server.MinecraftServer
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 
-class Translations : Extractor.Extractor {
+class Translations : IExtractor {
     private val gson: Gson = GsonBuilder().disableHtmlEscaping().create()
 
     override fun fileName(): String {

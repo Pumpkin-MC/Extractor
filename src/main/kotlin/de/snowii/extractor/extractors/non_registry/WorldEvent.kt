@@ -2,11 +2,11 @@ package de.snowii.extractor.extractors.non_registry
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.WorldEvents
 
-class WorldEvent : Extractor.Extractor {
+class WorldEvent : IExtractor {
     override fun fileName(): String {
         return "world_event.json"
     }

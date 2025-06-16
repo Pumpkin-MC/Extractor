@@ -3,7 +3,7 @@ package de.snowii.extractor.extractors.non_registry
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.server.MinecraftServer
 import net.minecraft.state.property.BooleanProperty
 import net.minecraft.state.property.EnumProperty
@@ -11,7 +11,7 @@ import net.minecraft.state.property.IntProperty
 import net.minecraft.state.property.Property
 import java.lang.reflect.Modifier
 
-class Properties : Extractor.Extractor {
+class Properties : IExtractor {
     override fun fileName(): String {
         return "properties.json"
     }

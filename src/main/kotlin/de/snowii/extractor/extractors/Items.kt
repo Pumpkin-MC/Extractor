@@ -3,7 +3,7 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.component.ComponentMap
 import net.minecraft.item.Item
 import net.minecraft.registry.Registries
@@ -12,7 +12,7 @@ import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 
 
-class Items : Extractor.Extractor {
+class Items : IExtractor {
     override fun fileName(): String {
         return "items.json"
     }

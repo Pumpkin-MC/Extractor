@@ -3,13 +3,13 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings
 
-class ChunkGenSetting : Extractor.Extractor {
+class ChunkGenSetting : IExtractor {
     override fun fileName(): String {
         return "chunk_gen_settings.json"
     }

@@ -4,13 +4,13 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.Codec
 import com.mojang.serialization.JsonOps
-import de.snowii.extractor.Extractor
+import de.snowii.extractor.IExtractor
 import net.minecraft.registry.*
 import net.minecraft.server.MinecraftServer
 import java.util.stream.Stream
 
 
-class SyncedRegistries : Extractor.Extractor {
+class SyncedRegistries : IExtractor {
     override fun fileName(): String {
         return "synced_registries.json"
     }
