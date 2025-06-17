@@ -15,7 +15,6 @@ import net.minecraft.world.biome.Biome
 import net.minecraft.world.biome.source.MultiNoiseBiomeSource
 import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterList
 import net.minecraft.world.biome.source.MultiNoiseBiomeSourceParameterLists
-import net.minecraft.world.biome.source.util.MultiNoiseUtil
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.*
 import net.minecraft.world.gen.chunk.Blender
 import net.minecraft.world.gen.chunk.ChunkGeneratorSettings
@@ -104,7 +103,7 @@ class MultiNoise : Extractor.Extractor {
             }
         }
 
-        val overworldEntries = method!!.invoke(overworldBiomeSource) as MultiNoiseUtil.Entries<RegistryEntry<Biome>>
+        val overworldEntries = method!!.invoke(overworldBiomeSource) as Entries<RegistryEntry<Biome>>
 
         var field: Field? = null
         for (f: Field in overworldEntries::class.java.declaredFields) {
@@ -116,7 +115,8 @@ class MultiNoise : Extractor.Extractor {
 
         val overworld = extract_search_tree(field!!.get(overworldEntries))
 
-        val netherBiomeSource = MultiNoiseBiomeSource.create(multiNoiseRegistry.getOrThrow(MultiNoiseBiomeSourceParameterLists.NETHER))
+        val netherBiomeSource =
+            MultiNoiseBiomeSource.create(multiNoiseRegistry.getOrThrow(MultiNoiseBiomeSourceParameterLists.NETHER))
 
         method = null
         for (m: Method in netherBiomeSource::class.java.declaredMethods) {
@@ -127,7 +127,7 @@ class MultiNoise : Extractor.Extractor {
             }
         }
 
-        val netherEntries = method!!.invoke(netherBiomeSource) as MultiNoiseUtil.Entries<RegistryEntry<Biome>>
+        val netherEntries = method!!.invoke(netherBiomeSource) as Entries<RegistryEntry<Biome>>
 
         field = null
         for (f: Field in netherEntries::class.java.declaredFields) {

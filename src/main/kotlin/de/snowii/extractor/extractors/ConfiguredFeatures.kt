@@ -9,9 +9,9 @@ import net.minecraft.registry.RegistryOps
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.gen.feature.ConfiguredFeature
 
-class WorldGenFeatures : Extractor.Extractor {
+class ConfiguredFeatures : Extractor.Extractor {
     override fun fileName(): String {
-        return "gen_features.json"
+        return "configured_features.json"
     }
 
     override fun extract(server: MinecraftServer): JsonElement {
