@@ -47,33 +47,16 @@ class Blocks : Extractor.Extractor {
 
     private fun getFlammableData(): Map<Block, Pair<Int, Int>> {
         val flammableData = mutableMapOf<Block, Pair<Int, Int>>()
-
-        try {
-            val fireBlock = net.minecraft.block.Blocks.FIRE
-            val fireBlockClass = fireBlock::class.java
-            val burnChancesField = fireBlockClass.getDeclaredField("burnChances")
-            val spreadChancesField = fireBlockClass.getDeclaredField("spreadChances")
-            burnChancesField.isAccessible = true
-            spreadChancesField.isAccessible = true
-
-            val burnChances = burnChancesField.get(fireBlock) as Map<Block, Int>
-            val spreadChances = spreadChancesField.get(fireBlock) as Map<Block, Int>
-
-            val allBlocks = mutableSetOf<Block>()
-            allBlocks.addAll(burnChances.keys)
-            allBlocks.addAll(spreadChances.keys)
-
-            for (block in allBlocks) {
-                val spreadChance = spreadChances[block] ?: 0
-                val burnChance = burnChances[block] ?: 0
-                if (spreadChance > 0 || burnChance > 0) {
-                    flammableData[block] = Pair(spreadChance, burnChance)
-                }
+        val fireBlock = net.minecraft.block.Blocks.FIRE as net.minecraft.block.FireBlock;
+        for (block in Registries.BLOCK) {
+            val defaultState = block.defaultState
+            val spreadChance = fireBlock.getSpreadChance(defaultState)
+            val burnChance = fireBlock.getBurnChance(defaultState)
+            if (spreadChance > 0 || burnChance > 0) {
+                flammableData[block] = Pair(spreadChance, burnChance)
             }
-        } catch (e: Exception) {
-            println("Warning: Could not extract flammable data: ${e.message}")
-            e.printStackTrace()
         }
+
         return flammableData
     }
 
