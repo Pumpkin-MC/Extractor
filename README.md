@@ -1,7 +1,7 @@
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Current version)](https://img.shields.io/badge/current_version-1.21.4-blue)
+![Current version)](https://img.shields.io/badge/current_version-1.21.6-blue)
 
 Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities, etc.) into JSON files 
 </div>

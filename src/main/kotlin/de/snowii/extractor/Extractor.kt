@@ -52,7 +52,7 @@ class Extractor : ModInitializer {
             Tags(),
             NoiseParameters(),
             Entities(),
-            WorldGenFeatures(),
+            ConfiguredFeatures(),
             Items(),
             Blocks(),
             MultiNoise(),
@@ -106,10 +106,34 @@ class Extractor : ModInitializer {
                 0,
                 arrayListOf("CacheOnce")
             ),
-            ChunkDumpTests.NoiseDump("no_blend_no_beard_-595_544.chunk", 0, -595, 544, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
-            ChunkDumpTests.NoiseDump("no_blend_no_beard_-119_183.chunk", 0, -119, 183, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
-            ChunkDumpTests.NoiseDump("no_blend_no_beard_13579_-6_11.chunk", 13579, -6, 11, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
-            ChunkDumpTests.NoiseDump("no_blend_no_beard_13579_-2_15.chunk", 13579, -2, 15, arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")),
+            ChunkDumpTests.NoiseDump(
+                "no_blend_no_beard_-595_544.chunk",
+                0,
+                -595,
+                544,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
+            ),
+            ChunkDumpTests.NoiseDump(
+                "no_blend_no_beard_-119_183.chunk",
+                0,
+                -119,
+                183,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
+            ),
+            ChunkDumpTests.NoiseDump(
+                "no_blend_no_beard_13579_-6_11.chunk",
+                13579,
+                -6,
+                11,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
+            ),
+            ChunkDumpTests.NoiseDump(
+                "no_blend_no_beard_13579_-2_15.chunk",
+                13579,
+                -2,
+                15,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
+            ),
             BiomeDumpTests(),
             BiomeDumpTests().MultiNoiseBiomeSourceTest(),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_0_0.chunk", 0, 0, 0),
