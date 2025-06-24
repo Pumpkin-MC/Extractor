@@ -25,6 +25,7 @@ java {
 
 loom {
     splitEnvironmentSourceSets()
+    accessWidenerPath = file("src/main/resources/fireProps.accesswidener")
 
     mods {
         register("extractor") {
