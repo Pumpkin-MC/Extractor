@@ -45,12 +45,29 @@ class Blocks : Extractor.Extractor {
         return "blocks.json"
     }
 
+    private fun getFlammableData(): Map<Block, Pair<Int, Int>> {
+        val flammableData = mutableMapOf<Block, Pair<Int, Int>>()
+        val fireBlock = net.minecraft.block.Blocks.FIRE as net.minecraft.block.FireBlock;
+        for (block in Registries.BLOCK) {
+            val defaultState = block.defaultState
+            val spreadChance = fireBlock.getSpreadChance(defaultState)
+            val burnChance = fireBlock.getBurnChance(defaultState)
+            if (spreadChance > 0 || burnChance > 0) {
+                flammableData[block] = Pair(spreadChance, burnChance)
+            }
+        }
+
+        return flammableData
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonObject()
 
         val blocksJson = JsonArray()
 
         val shapes: LinkedHashMap<Box, Int> = LinkedHashMap()
+
+        val flammableData = getFlammableData()
 
         for (block in Registries.BLOCK) {
             val blockJson = JsonObject()
@@ -63,6 +80,15 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("hardness", block.hardness)
             blockJson.addProperty("blast_resistance", block.blastResistance)
             blockJson.addProperty("item_id", Registries.ITEM.getRawId(block.asItem()))
+
+            // Add flammable data if this block is flammable
+            flammableData[block]?.let { (spreadChance, burnChance) ->
+                val flammableJson = JsonObject()
+                flammableJson.addProperty("spread_chance", spreadChance)
+                flammableJson.addProperty("burn_chance", burnChance)
+                blockJson.add("flammable", flammableJson)
+            }
+
             if (block is ExperienceDroppingBlock) {
                 blockJson.add(
                     "experience", ExperienceDroppingBlock.CODEC.codec().encodeStart(
