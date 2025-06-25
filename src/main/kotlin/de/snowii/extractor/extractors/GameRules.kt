@@ -16,8 +16,11 @@ class GameRules : Extractor.Extractor {
         val gameEventJson = JsonObject()
         val rules = GameRules(FeatureFlags::VANILLA_FEATURES.get())
         rules.accept(object : GameRules.Visitor {
-            override fun <T : GameRules.Rule<T>?> visit(key: GameRules.Key<T>, type: GameRules.Type<T>) {
-                gameEventJson.addProperty(key.name, type.createRule()!!.serialize())
+            override fun visitBoolean(key: GameRules.Key<GameRules.BooleanRule>, type: GameRules.Type<GameRules.BooleanRule>) {
+                gameEventJson.addProperty(key.name, type.createRule()!!.get())
+            }
+            override fun visitInt(key: GameRules.Key<GameRules.IntRule>, type: GameRules.Type<GameRules.IntRule>) {
+                gameEventJson.addProperty(key.name, type.createRule()!!.get())
             }
         })
         return gameEventJson
