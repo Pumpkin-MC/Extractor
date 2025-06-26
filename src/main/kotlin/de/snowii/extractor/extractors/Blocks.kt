@@ -145,7 +145,7 @@ class Blocks : Extractor.Extractor {
                 stateJson.addProperty("luminance", state.luminance)
                 stateJson.addProperty("piston_behavior", state.pistonBehavior.name)
                 stateJson.addProperty("hardness", state.getHardness(null, null))
-                stateJson.addProperty("has_random_ticks", block.hasRandomTicks(state))
+                stateJson.addProperty("has_random_ticks", state.hasRandomTicks())
                 if (state.isOpaque) {
                     stateJson.addProperty("opacity", state.opacity)
                 }
