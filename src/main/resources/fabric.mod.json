@@ -17,5 +17,5 @@
     "fabric": "*",
     "minecraft": "${minecraft_version}"
   },
-  "accessWidener": "fireProps.accesswidener"
+  "accessWidener": "otherProps.accesswidener"
 }
