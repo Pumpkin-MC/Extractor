@@ -15,9 +15,10 @@ class FlowerPot : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val flowerPotsJson = JsonObject()
         for ((block, pottedBlock) in FlowerPotBlock.CONTENT_TO_POTTED){
+            if (Registries.BLOCK.getRawId(block) == 0) continue
             flowerPotsJson.addProperty(
-                Registries.BLOCK.getId(block).path,
-                Registries.BLOCK.getId(pottedBlock).path)
+                Registries.BLOCK.getId(block).toString(),
+                Registries.BLOCK.getId(pottedBlock).toString())
         }
 
         return flowerPotsJson
