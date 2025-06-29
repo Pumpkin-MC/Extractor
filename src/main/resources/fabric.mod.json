@@ -17,5 +17,5 @@
     "fabric": "*",
     "minecraft": "${minecraft_version}"
   },
-  "accessWidener": "otherProps.accesswidener"
+  "accessWidener": "extractor.accesswidener"
 }
