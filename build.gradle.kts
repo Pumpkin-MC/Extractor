@@ -25,7 +25,7 @@ java {
 
 loom {
     splitEnvironmentSourceSets()
-    accessWidenerPath = file("src/main/resources/otherProps.accesswidener")
+    accessWidenerPath = file("src/main/resources/extractor.accesswidener")
 
     mods {
         register("extractor") {

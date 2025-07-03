@@ -32,6 +32,7 @@ class Extractor : ModInitializer {
             BiomeMixerTest(),
             WorldEvent(),
             Carver(),
+            Enchantments(),
             ScoreboardDisplaySlot(),
             Particles(),
             EntityAttributes(),
