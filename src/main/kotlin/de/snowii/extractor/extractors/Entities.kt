@@ -33,6 +33,7 @@ class Entities : Extractor.Extractor {
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is MobEntity)
+                entityJson.addProperty("limit_per_chunk", (entity as? MobEntity)?.limitPerChunk?: 0)
             }
             entityJson.addProperty("summonable", entityType.isSummonable)
             entityJson.addProperty("fire_immune", entityType.isFireImmune)
