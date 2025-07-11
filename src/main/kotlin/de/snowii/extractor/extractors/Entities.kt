@@ -9,6 +9,7 @@ import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.SpawnLocationTypes
 import net.minecraft.entity.SpawnReason
 import net.minecraft.entity.SpawnRestriction
+import net.minecraft.entity.mob.MobEntity
 import net.minecraft.loot.LootTable
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
@@ -31,9 +32,12 @@ class Entities : Extractor.Extractor {
                     entityJson.addProperty("max_health", entity.maxHealth)
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
+                entityJson.addProperty("mob", entity is MobEntity)
             }
             entityJson.addProperty("summonable", entityType.isSummonable)
             entityJson.addProperty("fire_immune", entityType.isFireImmune)
+            entityJson.addProperty("category", entityType.spawnGroup.name)
+            entityJson.addProperty("can_spawn_far_from_player", entityType.isSpawnableFarFromPlayer)
             val dimension = JsonArray()
             dimension.add(entityType.width)
             dimension.add(entityType.height)
