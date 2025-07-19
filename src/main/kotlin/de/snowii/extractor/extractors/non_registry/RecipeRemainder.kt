@@ -28,7 +28,7 @@ class RecipeRemainder : Extractor.Extractor  {
 
             recipeRemainderJson.add(
                 Registries.ITEM.getRawId(realItem).toString(),
-                JsonPrimitive(Registries.ITEM.getRawId(remainder.item).toString()),
+                JsonPrimitive(Registries.ITEM.getRawId(remainder.item)),
             )
 
         }
