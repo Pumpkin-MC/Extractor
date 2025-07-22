@@ -14,9 +14,13 @@ class EntityAttributes : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val finalJson = JsonObject()
         for (attribute in Registries.ATTRIBUTE) {
-            finalJson.addProperty(
+            var subObject = JsonObject()
+            subObject.addProperty("id", Registries.ATTRIBUTE.getRawId(attribute))
+            subObject.addProperty("default_value", attribute.defaultValue)
+
+            finalJson.add(
                 Registries.ATTRIBUTE.getId(attribute)!!.path,
-                attribute.defaultValue
+                subObject
             )
         }
 
