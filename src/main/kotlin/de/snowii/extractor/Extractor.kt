@@ -55,6 +55,7 @@ class Extractor : ModInitializer {
             Entities(),
             ConfiguredFeatures(),
             Items(),
+            DataComponent(),
             Blocks(),
             MultiNoise(),
             MultiNoise().Sample(),
