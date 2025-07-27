@@ -2,3 +2,5 @@ accessWidener v2 named
 
 accessible method net/minecraft/block/FireBlock getSpreadChance (Lnet/minecraft/block/BlockState;)I
 accessible method net/minecraft/block/FireBlock getBurnChance (Lnet/minecraft/block/BlockState;)I
+accessible field net/minecraft/block/FlowerPotBlock CONTENT_TO_POTTED Ljava/util/Map;
+
