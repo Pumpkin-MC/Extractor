@@ -46,33 +46,19 @@ class Effect : Extractor.Extractor {
             val applySound = t3.get(realPotion) as? Optional<SoundEvent>
             applySound?.ifPresent { soundEvent -> itemJson.addProperty("apply_sound", Registries.SOUND_EVENT.getId(soundEvent)!!.path)}
 
-            val t2 = StatusEffect::class.java.getDeclaredField("attributeModifiers")
-            t2.isAccessible = true
-            val attributeModifiers = t2.get(realPotion) as? Map<RegistryEntry<EntityAttribute>, *>
-            if (attributeModifiers != null) {
-                val arr = JsonArray()
-                for ((key, value) in attributeModifiers) {
-                    val obj = JsonObject()
-                    obj.addProperty("attribute", Registries.ATTRIBUTE.getId(key.value())!!.path)
-                    val clazz = value?.javaClass
-                    clazz?.let {
-                        for (field in it.declaredFields) {
-                            field.isAccessible = true
-                            val value = field.get(value)
-                            if (value is Identifier) {
-                                obj.addProperty(field.name, value.toString())
-                            } else if (value is Double) {
-                                obj.addProperty(field.name, value)
-                            } else if (value is EntityAttributeModifier.Operation) {
-                                obj.addProperty(field.name, value.toString())
-                            }
-                        }
-                    }
-                    arr.add(obj)
-                }
-                itemJson.add("attribute_modifiers", arr)
-            }
+            val attributesRegistry =
+                server.registryManager.getOrThrow(RegistryKeys.ATTRIBUTE)
 
+            val attributeModifiersJson = JsonArray()
+            realPotion.forEachAttributeModifier(0) { reg, mod ->
+                val potionJson = JsonObject()
+                potionJson.addProperty("attribute", attributesRegistry.getId(reg.value())!!.path)
+                potionJson.addProperty("operation", mod.operation.toString())
+                potionJson.addProperty("id", mod.id.toString())
+                potionJson.addProperty("baseValue", mod.value)
+                attributeModifiersJson.add(potionJson)
+            }
+            itemJson.add("attribute_modifiers", attributeModifiersJson)
 
             Registries.STATUS_EFFECT.getId(realPotion)?.let { json.add(it.path, itemJson) }
         }
