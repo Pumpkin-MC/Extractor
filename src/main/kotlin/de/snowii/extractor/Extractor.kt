@@ -26,6 +26,9 @@ class Extractor : ModInitializer {
         logger.info("Starting Pumpkin Extractor")
 
         val extractors = arrayOf(
+            Effect(),
+            PotionBrewing(),
+            Potion(),
             Sounds(),
             Recipes(),
             Biome(),
@@ -39,7 +42,6 @@ class Extractor : ModInitializer {
             ChunkStatus(),
             EntityStatuses(),
             MessageType(),
-            StatusEffects(),
             SoundCategory(),
             EntityPose(),
             GameEvent(),
