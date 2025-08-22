@@ -4,6 +4,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import de.snowii.extractor.extractors.*
 import de.snowii.extractor.extractors.non_registry.*
+import de.snowii.extractor.extractors.structures.StructureSet
+import de.snowii.extractor.extractors.structures.Structures
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
@@ -54,6 +56,8 @@ class Extractor : ModInitializer {
             PlacedFeatures(),
             Tags(),
             NoiseParameters(),
+            Structures(),
+            StructureSet(),
             Entities(),
             ConfiguredFeatures(),
             Items(),
