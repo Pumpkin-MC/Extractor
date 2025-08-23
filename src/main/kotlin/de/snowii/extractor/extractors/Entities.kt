@@ -36,6 +36,7 @@ class Entities : Extractor.Extractor {
                 entityJson.addProperty("limit_per_chunk", (entity as? MobEntity)?.limitPerChunk?: 0)
             }
             entityJson.addProperty("summonable", entityType.isSummonable)
+            entityJson.addProperty("saveable", entityType.isSaveable)
             entityJson.addProperty("fire_immune", entityType.isFireImmune)
             entityJson.addProperty("category", entityType.spawnGroup.name)
             entityJson.addProperty("can_spawn_far_from_player", entityType.isSpawnableFarFromPlayer)
