@@ -22,23 +22,25 @@ import java.util.*
 class Blocks : Extractor.Extractor {
 
     companion object {
-        private const val AIR: Int = 0b00000001
-        private const val BURNABLE: Int = 0b00000010
-        private const val TOOL_REQUIRED: Int = 0b00000100
-        private const val SIDED_TRANSPARENCY: Int = 0b00001000
-        private const val REPLACEABLE: Int = 0b00010000
-        private const val IS_LIQUID: Int = 0b00100000
-        private const val IS_SOLID: Int = 0b01000000
-        private const val IS_FULL_CUBE: Int = 0b10000000
+        private const val AIR               : Int = 1 shl 0
+        private const val BURNABLE          : Int = 1 shl 1
+        private const val TOOL_REQUIRED     : Int = 1 shl 2
+        private const val SIDED_TRANSPARENCY: Int = 1 shl 3
+        private const val REPLACEABLE       : Int = 1 shl 4
+        private const val IS_LIQUID         : Int = 1 shl 5
+        private const val IS_SOLID          : Int = 1 shl 6
+        private const val IS_FULL_CUBE      : Int = 1 shl 7
+        private const val IS_SOLID_BLOCK    : Int = 1 shl 8
+        private const val HAS_RANDOM_TICKS  : Int = 1 shl 9
 
-        private const val DOWN_SIDE_SOLID: Int = 0b00000001;
-        private const val UP_SIDE_SOLID: Int = 0b00000010;
-        private const val NORTH_SIDE_SOLID: Int = 0b00000100;
-        private const val SOUTH_SIDE_SOLID: Int = 0b00001000;
-        private const val WEST_SIDE_SOLID: Int = 0b00010000;
-        private const val EAST_SIDE_SOLID: Int = 0b00100000;
-        private const val DOWN_CENTER_SOLID: Int = 0b01000000;
-        private const val UP_CENTER_SOLID: Int = 0b10000000;
+        private const val DOWN_SIDE_SOLID   : Int = 1 shl 0;
+        private const val UP_SIDE_SOLID     : Int = 1 shl 1;
+        private const val NORTH_SIDE_SOLID  : Int = 1 shl 2;
+        private const val SOUTH_SIDE_SOLID  : Int = 1 shl 3;
+        private const val WEST_SIDE_SOLID   : Int = 1 shl 4;
+        private const val EAST_SIDE_SOLID   : Int = 1 shl 5;
+        private const val DOWN_CENTER_SOLID : Int = 1 shl 6;
+        private const val UP_CENTER_SOLID   : Int = 1 shl 7;
     }
 
     override fun fileName(): String {
@@ -128,6 +130,8 @@ class Blocks : Extractor.Extractor {
                 if (state.isLiquid) stateFlags = stateFlags or IS_LIQUID
                 if (state.isSolid) stateFlags = stateFlags or IS_SOLID
                 if (state.isFullCube(EmptyBlockView.INSTANCE, BlockPos.ORIGIN)) stateFlags = stateFlags or IS_FULL_CUBE
+                if (state.isSolidBlock(EmptyBlockView.INSTANCE, BlockPos.ORIGIN)) stateFlags = stateFlags or IS_SOLID_BLOCK
+                if (state.hasRandomTicks()) stateFlags = stateFlags or HAS_RANDOM_TICKS
 
                 if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.DOWN)) sideFlags = sideFlags or DOWN_SIDE_SOLID
                 if (state.isSideSolidFullSquare(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.UP)) sideFlags = sideFlags or UP_SIDE_SOLID
@@ -139,13 +143,12 @@ class Blocks : Extractor.Extractor {
                 if (state.isSideSolid(EmptyBlockView.INSTANCE, BlockPos.ORIGIN, Direction.UP, SideShapeType.CENTER)) sideFlags = sideFlags or UP_CENTER_SOLID
                 
                 stateJson.addProperty("id", Block.getRawIdFromState(state))
-                stateJson.addProperty("state_flags", stateFlags and 0xFF)
+                stateJson.addProperty("state_flags", stateFlags and 0xFFFF)
                 stateJson.addProperty("side_flags", sideFlags and 0xFF)
                 stateJson.addProperty("instrument", state.instrument.name)
                 stateJson.addProperty("luminance", state.luminance)
                 stateJson.addProperty("piston_behavior", state.pistonBehavior.name)
                 stateJson.addProperty("hardness", state.getHardness(null, null))
-                stateJson.addProperty("has_random_ticks", state.hasRandomTicks())
                 stateJson.addProperty("opacity", state.opacity)
  
                 if (block.defaultState == state) {
