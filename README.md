@@ -1,7 +1,7 @@
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Current version)](https://img.shields.io/badge/current_version-1.21.6-blue)
+![Current version)](https://img.shields.io/badge/current_version-1.21.9-blue)
 
 Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities, etc.) into JSON files 
 </div>
@@ -35,7 +35,7 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] Tests
 
 ### Running
-- Gradle >= 8.12
+- Gradle >= 9.1.0
 
 1. Clone the repo
 2. run `./gradlew runServer` or alternatively `./gralde runClient` (Join World)

@@ -93,7 +93,7 @@ class BiomeDumpTests : Extractor.Extractor {
                 val chunk = ProtoChunk(
                     chunkPos, UpgradeData.NO_UPGRADE_DATA,
                     HeightLimitView.create(options.chunkGenerator.minimumY, options.chunkGenerator.worldHeight),
-                    biomeRegistry, null
+                    server.overworld.palettesFactory, null
                 )
 
                 if (chunk.hasBelowZeroRetrogen()) {
