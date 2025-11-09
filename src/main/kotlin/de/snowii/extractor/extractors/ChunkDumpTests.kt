@@ -20,6 +20,7 @@ import net.minecraft.world.biome.source.util.MultiNoiseUtil.MultiNoiseSampler
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.NoiseHypercube
 import net.minecraft.world.chunk.Chunk
 import net.minecraft.world.chunk.ChunkStatus
+import net.minecraft.world.chunk.PalettesFactory
 import net.minecraft.world.chunk.ProtoChunk
 import net.minecraft.world.chunk.UpgradeData
 import net.minecraft.world.gen.HeightContext
@@ -298,6 +299,8 @@ class ChunkDumpTests {
 
         override fun extract(server: MinecraftServer): JsonElement {
             val biomeRegistry = server.registryManager.getOrThrow(RegistryKeys.BIOME)
+            val palettesFactory = PalettesFactory.fromRegistryManager(server.registryManager)
+
 
             val chunkPos = ChunkPos(this.chunkX, this.chunkZ)
 
@@ -335,7 +338,7 @@ class ChunkDumpTests {
             val chunk = ProtoChunk(
                 chunkPos, UpgradeData.NO_UPGRADE_DATA,
                 HeightLimitView.create(options.chunkGenerator.minimumY, options.chunkGenerator.worldHeight),
-                biomeRegistry, null
+                palettesFactory, null
             )
 
             val biomeNoiseSampler = createMultiNoiseSampler(config, testSampler)

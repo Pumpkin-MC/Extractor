@@ -15,6 +15,8 @@ import net.minecraft.world.biome.source.*
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.MultiNoiseSampler
 import net.minecraft.world.biome.source.util.MultiNoiseUtil.NoiseHypercube
 import net.minecraft.world.chunk.ChunkStatus
+import net.minecraft.world.chunk.PalettedContainer
+import net.minecraft.world.chunk.PalettesFactory
 import net.minecraft.world.chunk.ProtoChunk
 import net.minecraft.world.chunk.UpgradeData
 import net.minecraft.world.gen.WorldPresets
@@ -58,6 +60,8 @@ class BiomeDumpTests : Extractor.Extractor {
         val seed = 0L
 
         val biomeRegistry = server.registryManager.getOrThrow(RegistryKeys.BIOME)
+        val palettesFactory = PalettesFactory.fromRegistryManager(server.registryManager)
+
 
         // Overworld shape config
         val shape = GenerationShapeConfig(-64, 384, 1, 2)
@@ -93,7 +97,7 @@ class BiomeDumpTests : Extractor.Extractor {
                 val chunk = ProtoChunk(
                     chunkPos, UpgradeData.NO_UPGRADE_DATA,
                     HeightLimitView.create(options.chunkGenerator.minimumY, options.chunkGenerator.worldHeight),
-                    biomeRegistry, null
+                    palettesFactory, null
                 )
 
                 if (chunk.hasBelowZeroRetrogen()) {
