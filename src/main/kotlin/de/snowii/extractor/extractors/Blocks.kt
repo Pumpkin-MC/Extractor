@@ -151,10 +151,8 @@ class Blocks : Extractor.Extractor {
                 stateJson.addProperty("piston_behavior", state.pistonBehavior.name)
                 stateJson.addProperty("hardness", state.getHardness(null, null))
 
-                if (state.isOpaque) {
                     stateJson.addProperty("opacity", state.opacity)
-                }
- 
+
                 if (block.defaultState == state) {
                     blockJson.addProperty("default_state_id", Block.getRawIdFromState(state))
                 }
