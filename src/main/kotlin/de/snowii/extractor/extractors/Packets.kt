@@ -45,20 +45,20 @@ class Packets : Extractor.Extractor {
     private fun serializeServerBound(
         packets: Array<NetworkState.Unbound>
     ): JsonObject {
-        val handshakeArray = JsonArray()
-        val statusArray = JsonArray()
-        val loginArray = JsonArray()
-        val configArray = JsonArray()
-        val playArray = JsonArray()
+        val handshakeArray = JsonObject()
+        val statusArray = JsonObject()
+        val loginArray = JsonObject()
+        val configArray = JsonObject()
+        val playArray = JsonObject()
 
         for (factory in packets) {
-            factory.forEachPacketType { type: PacketType<*>, _: Int ->
+            factory.forEachPacketType { type: PacketType<*>, id: Int ->
                 when (factory.phase()!!) {
-                    NetworkPhase.HANDSHAKING -> handshakeArray.add(type.id().path)
-                    NetworkPhase.PLAY -> playArray.add(type.id().path)
-                    NetworkPhase.STATUS -> statusArray.add(type.id().path)
-                    NetworkPhase.LOGIN -> loginArray.add(type.id().path)
-                    NetworkPhase.CONFIGURATION -> configArray.add(type.id().path)
+                    NetworkPhase.HANDSHAKING -> handshakeArray.addProperty(type.id().path, id)
+                    NetworkPhase.PLAY -> playArray.addProperty(type.id().path, id)
+                    NetworkPhase.STATUS -> statusArray.addProperty(type.id().path, id)
+                    NetworkPhase.LOGIN -> loginArray.addProperty(type.id().path, id)
+                    NetworkPhase.CONFIGURATION -> configArray.addProperty(type.id().path, id)
                 }
             }
         }
@@ -75,19 +75,19 @@ class Packets : Extractor.Extractor {
     private fun serializeClientBound(
         packets: Array<NetworkState.Unbound>
     ): JsonObject {
-        val statusArray = JsonArray()
-        val loginArray = JsonArray()
-        val configArray = JsonArray()
-        val playArray = JsonArray()
+        val statusArray = JsonObject()
+        val loginArray = JsonObject()
+        val configArray = JsonObject()
+        val playArray = JsonObject()
 
         for (factory in packets) {
-            factory.forEachPacketType { type: PacketType<*>, _: Int ->
+            factory.forEachPacketType { type: PacketType<*>, id: Int ->
                 when (factory.phase()!!) {
                     NetworkPhase.HANDSHAKING -> error("Client bound Packet should have no handshake")
-                    NetworkPhase.PLAY -> playArray.add(type.id().path)
-                    NetworkPhase.STATUS -> statusArray.add(type.id().path)
-                    NetworkPhase.LOGIN -> loginArray.add(type.id().path)
-                    NetworkPhase.CONFIGURATION -> configArray.add(type.id().path)
+                    NetworkPhase.PLAY -> playArray.addProperty(type.id().path, id)
+                    NetworkPhase.STATUS -> statusArray.addProperty(type.id().path, id)
+                    NetworkPhase.LOGIN -> loginArray.addProperty(type.id().path, id)
+                    NetworkPhase.CONFIGURATION -> configArray.addProperty(type.id().path, id)
                 }
             }
         }
