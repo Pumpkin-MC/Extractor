@@ -65,6 +65,7 @@ class Extractor : ModInitializer {
             PlacedFeatures(),
             ConfiguredFeatures(),
             Tags(),
+            JukeboxSong(),
             MetaDataType(),
             TrackedData(),
             NoiseParameters(),
