@@ -9,12 +9,6 @@ import de.snowii.extractor.extractors.structures.Structures
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.math.Vec3i
-import net.minecraft.util.math.random.CheckedRandom
-import net.minecraft.util.math.random.ChunkRandom
-import net.minecraft.world.gen.chunk.placement.RandomSpreadStructurePlacement
-import net.minecraft.world.gen.chunk.placement.SpreadType
-import net.minecraft.world.gen.chunk.placement.StructurePlacement
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.FileWriter
@@ -23,7 +17,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.Optional
 import kotlin.system.measureTimeMillis
 
 
@@ -34,8 +27,8 @@ class Extractor : ModInitializer {
     override fun onInitialize() {
         logger.info("Starting Pumpkin Extractor")
 
-
         val extractors = arrayOf(
+            Advancement(),
             Effect(),
             PotionBrewing(),
             Potion(),
