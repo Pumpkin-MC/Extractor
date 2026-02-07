@@ -33,6 +33,10 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] SyncedRegistries
 - [x] Tags
 - [x] Tests
+- [x] Dialog
+- [x] DialogType
+- [x] DialogActionType
+- [x] DialogBodyType
 
 ### Running
 - Gradle >= 9.1.0

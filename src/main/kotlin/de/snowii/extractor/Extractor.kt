@@ -36,6 +36,10 @@ class Extractor : ModInitializer {
 
 
         val extractors = arrayOf(
+            Dialog(),
+            DialogAction(),
+            DialogBody(),
+            DialogType(),
             Effect(),
             PotionBrewing(),
             Potion(),
