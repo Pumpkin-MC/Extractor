@@ -6,20 +6,20 @@ import de.snowii.extractor.Extractor
 import net.minecraft.registry.RegistryKeys
 import net.minecraft.server.MinecraftServer
 
-class DialogAction : Extractor.Extractor {
+class DialogBodyType : Extractor.Extractor {
     override fun fileName(): String {
-        return "dialog_action.json"
+        return "dialog_body_type.json"
     }
 
     override fun extract(server: MinecraftServer): JsonElement {
-        val dialogActionJson = JsonObject()
-        val registry = server.registryManager.getOrThrow(RegistryKeys.DIALOG_ACTION_TYPE)
+        val dialogBodyJson = JsonObject()
+        val registry = server.registryManager.getOrThrow(RegistryKeys.DIALOG_BODY_TYPE)
 
         for (dialogType in registry.streamEntries().toList()) {
             val id = registry.getId(dialogType.value())
-            dialogActionJson.addProperty(id.toString(), registry.getRawId(dialogType.value()))
+            dialogBodyJson.addProperty(id.toString(), registry.getRawId(dialogType.value()))
         }
 
-        return dialogActionJson
+        return dialogBodyJson
     }
 }
