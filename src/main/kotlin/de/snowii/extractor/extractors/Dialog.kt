@@ -26,7 +26,6 @@ class Dialog : Extractor.Extractor {
             finalJson.add(
                 registry.getId(dialog)!!.toString(), sub
             )
-
         }
         return finalJson
     }

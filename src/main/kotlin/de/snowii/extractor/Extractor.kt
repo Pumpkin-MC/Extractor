@@ -33,6 +33,7 @@ class Extractor : ModInitializer {
             DialogActionType(),
             DialogBodyType(),
             DialogType(),
+            InputControlType(),
             Effect(),
             PotionBrewing(),
             Potion(),
