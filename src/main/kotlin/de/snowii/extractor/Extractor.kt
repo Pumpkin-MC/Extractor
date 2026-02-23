@@ -27,13 +27,13 @@ class Extractor : ModInitializer {
     override fun onInitialize() {
         logger.info("Starting Pumpkin Extractor")
 
-
         val extractors = arrayOf(
             Dialog(),
             DialogActionType(),
             DialogBodyType(),
             DialogType(),
             InputControlType(),
+            Advancement(),
             Effect(),
             PotionBrewing(),
             Potion(),
