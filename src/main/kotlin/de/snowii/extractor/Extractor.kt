@@ -86,6 +86,7 @@ class Extractor : ModInitializer {
             FlowerPotTransformation(),
             Fuels(),
             RecipeRemainder(),
+            Instruments(),
             ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,
