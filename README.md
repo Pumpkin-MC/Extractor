@@ -42,7 +42,7 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - Gradle >= 9.1.0
 
 1. Clone the repo
-2. run `./gradlew runServer` or alternatively `./gralde runClient` (Join World)
+2. run `./gradlew runServer` or alternatively `./gradle runClient` (Join World)
 3. See JSON Files in the new folder called `pumpkin_extractor_output`
 
 ### Porting 
