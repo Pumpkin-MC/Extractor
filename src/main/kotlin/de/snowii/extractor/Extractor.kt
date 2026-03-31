@@ -35,6 +35,7 @@ class Extractor : ModInitializer {
             InputControlType(),
             Advancement(),
             Effect(),
+            SpawnEgg(),
             PotionBrewing(),
             Potion(),
             Sounds(),
