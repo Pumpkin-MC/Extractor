@@ -39,6 +39,7 @@ class Extractor : ModInitializer {
             PotionBrewing(),
             Potion(),
             Sounds(),
+            EntityHurtSound(),
             Recipes(),
             Biome(),
             BiomeMixerTest(),
