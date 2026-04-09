@@ -48,8 +48,14 @@ class Entities : Extractor.Extractor {
 
             if (net.minecraft.world.entity.ai.attributes.DefaultAttributes.hasSupplier(entityType)) {
                 val supplier = net.minecraft.world.entity.ai.attributes.DefaultAttributes.getSupplier(entityType as net.minecraft.world.entity.EntityType<out LivingEntity>)
-                val attributesArray = JsonArray()
 
+                // Backwards compatibility for top-level max_health
+                val maxHealth = net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH
+                if (supplier.hasAttribute(maxHealth)) {
+                    entityJson.addProperty("max_health", supplier.getBaseValue(maxHealth))
+                }
+
+                val attributesArray = JsonArray()
                 for (attribute in BuiltInRegistries.ATTRIBUTE) {
                     val holder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute)
                     if (supplier.hasAttribute(holder)) {
