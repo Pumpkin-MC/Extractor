@@ -34,20 +34,34 @@ class Entities : Extractor.Extractor {
 
             val entity = entityType.create(server.overworld(), EntitySpawnReason.NATURAL)
             if (entity != null) {
-                if (entity is LivingEntity) {
-                    entityJson.addProperty("max_health", entity.maxHealth)
-
-                    if (entityName in TARGET_HURT_SOUND_ENTITIES) {
-                        val hurtSound = getHurtSound(entity, damageSource)
-                        val hurtSoundId = hurtSound?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.path
-                        if (hurtSoundId != null) {
-                            entityJson.addProperty("hurt_sound", hurtSoundId)
-                        }
+                if (entity is LivingEntity && entityName in TARGET_HURT_SOUND_ENTITIES) {
+                    val hurtSound = getHurtSound(entity, damageSource)
+                    val hurtSoundId = hurtSound?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.path
+                    if (hurtSoundId != null) {
+                        entityJson.addProperty("hurt_sound", hurtSoundId)
                     }
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is Mob)
                 entityJson.addProperty("limit_per_chunk", (entity as? Mob)?.maxSpawnClusterSize ?: 0)
+            }
+
+            if (net.minecraft.world.entity.ai.attributes.DefaultAttributes.hasSupplier(entityType)) {
+                val supplier = net.minecraft.world.entity.ai.attributes.DefaultAttributes.getSupplier(entityType as net.minecraft.world.entity.EntityType<out LivingEntity>)
+                val attributesArray = JsonArray()
+
+                for (attribute in BuiltInRegistries.ATTRIBUTE) {
+                    val holder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute)
+                    if (supplier.hasAttribute(holder)) {
+                        val attrObj = JsonObject()
+                        attrObj.addProperty(
+                            BuiltInRegistries.ATTRIBUTE.getKey(attribute)!!.toString(),
+                            supplier.getBaseValue(holder)
+                        )
+                        attributesArray.add(attrObj)
+                    }
+                }
+                entityJson.add("attributes", attributesArray)
             }
 
             entityJson.addProperty("summonable", entityType.canSummon())
