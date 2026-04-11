@@ -78,6 +78,7 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("jump_velocity_multiplier", block.jumpFactor)
             blockJson.addProperty("hardness", block.defaultBlockState().getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO))
             blockJson.addProperty("blast_resistance", block.explosionResistance)
+            blockJson.addProperty("map_color", block.defaultMapColor().id)
             blockJson.addProperty("item_id", BuiltInRegistries.ITEM.getId(block.asItem()))
 
             flammableData[block]?.let { (spreadChance, burnChance) ->
