@@ -18,7 +18,7 @@ class Recipes : Extractor.Extractor {
         for (recipeRaw in server.recipeManager.recipes) {
             val recipe = recipeRaw.value
             recipesJson.add(
-                recipeRaw.id.value.toString(),
+                recipeRaw.id.identifier().toString(),
                 Recipe.CODEC.encodeStart(
                     JsonOps.INSTANCE,
                     recipe
