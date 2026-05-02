@@ -14,6 +14,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.SpawnPlacementTypes
 import net.minecraft.world.entity.SpawnPlacements
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes
 import net.minecraft.world.level.storage.loot.LootTable
 
 class Entities : Extractor.Extractor {
@@ -36,6 +37,7 @@ class Entities : Extractor.Extractor {
             if (entity != null) {
                 if (entity is LivingEntity) {
                     entityJson.addProperty("max_health", entity.maxHealth)
+
                     entityJson.addProperty("experience_reward", entity.getBaseExperienceReward(server.overworld()))
 
                     if (entityName in TARGET_HURT_SOUND_ENTITIES) {
@@ -44,6 +46,20 @@ class Entities : Extractor.Extractor {
                         if (hurtSoundId != null) {
                             entityJson.addProperty("hurt_sound", hurtSoundId)
                         }
+                    }
+
+                    if (DefaultAttributes.hasSupplier(entityType as net.minecraft.world.entity.EntityType<out LivingEntity>)) {
+                        val supplier = DefaultAttributes.getSupplier(entityType)
+                        val attributesArray = JsonArray()
+                        for (attribute in BuiltInRegistries.ATTRIBUTE) {
+                            val holder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute)
+                            if (supplier.hasAttribute(holder)) {
+                                val attributeJson = JsonObject()
+                                attributeJson.addProperty(BuiltInRegistries.ATTRIBUTE.getKey(attribute)!!.path, supplier.getBaseValue(holder))
+                                attributesArray.add(attributeJson)
+                            }
+                        }
+                        entityJson.add("attributes", attributesArray)
                     }
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
