@@ -36,6 +36,7 @@ class Entities : Extractor.Extractor {
             if (entity != null) {
                 if (entity is LivingEntity) {
                     entityJson.addProperty("max_health", entity.maxHealth)
+                    entityJson.addProperty("experience_reward", entity.getBaseExperienceReward(server.overworld()))
 
                     if (entityName in TARGET_HURT_SOUND_ENTITIES) {
                         val hurtSound = getHurtSound(entity, damageSource)

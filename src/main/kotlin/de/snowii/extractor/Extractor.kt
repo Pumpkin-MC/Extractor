@@ -86,6 +86,7 @@ class Extractor : ModInitializer {
             FlowerPotTransformation(),
             Fuels(),
             RecipeRemainder(),
+            VillagerData(),
          /*   ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,
@@ -174,7 +175,7 @@ class Extractor : ModInitializer {
             return
         }
 
-        val gson = GsonBuilder().disableHtmlEscaping().create()
+        val gson = GsonBuilder().disableHtmlEscaping() .create()
 
         ServerLifecycleEvents.SERVER_STARTED.register(ServerLifecycleEvents.ServerStarted { server: MinecraftServer ->
             val timeInMillis = measureTimeMillis {
