@@ -37,6 +37,7 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] DialogType
 - [x] DialogActionType
 - [x] DialogBodyType
+- [x] Custom Stats
 
 ### Running
 
