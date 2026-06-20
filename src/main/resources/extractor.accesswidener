@@ -35,3 +35,8 @@ accessible field net/minecraft/stats/StatType registry Lnet/minecraft/core/Regis
 accessible field net/minecraft/stats/StatType displayName Lnet/minecraft/network/chat/Component;
 # accessible field net/minecraft/entity/data/TrackedDataHandlerRegistry DATA_HANDLERS Lnet/minecraft/util/collection/Int2ObjectBiMap;
 # accessible field net/minecraft/entity/data/DataTracker CLASS_TO_LAST_ID Lnet/minecraft/util/collection/Class2IntMap;
+
+# For some reason, these constructors are private. We need them to be public to read the parameters from them
+accessible method net/minecraft/core/particles/PowerParticleOption <init> (Lnet/minecraft/core/particles/ParticleType;F)V
+accessible method net/minecraft/core/particles/SpellParticleOption <init> (Lnet/minecraft/core/particles/ParticleType;IF)V
+accessible method net/minecraft/core/particles/ColorParticleOption <init> (Lnet/minecraft/core/particles/ParticleType;I)V
