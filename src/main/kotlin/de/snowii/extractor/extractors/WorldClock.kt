@@ -15,6 +15,7 @@ class WorldClock : Extractor.Extractor {
         val worldClockJson = JsonArray()
         val registry =
             server.registryAccess().lookupOrThrow(Registries.WORLD_CLOCK)
+
         for (clock in registry) {
             worldClockJson.add(
                 registry.getKey(clock)!!.path,
