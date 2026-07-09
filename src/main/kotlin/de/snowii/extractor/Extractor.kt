@@ -92,6 +92,7 @@ class Extractor : ModInitializer {
             SlotRanges(),
             WorldClock(),
             TimeLine(),
+            EnvironmentAttribute(),
          /*   ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,
