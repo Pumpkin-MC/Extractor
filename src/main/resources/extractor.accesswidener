@@ -34,4 +34,11 @@ accessible field net/minecraft/stats/Stat value Ljava/lang/Object;
 accessible field net/minecraft/stats/StatType registry Lnet/minecraft/core/Registry;
 accessible field net/minecraft/stats/StatType displayName Lnet/minecraft/network/chat/Component;
 # accessible field net/minecraft/entity/data/TrackedDataHandlerRegistry DATA_HANDLERS Lnet/minecraft/util/collection/Int2ObjectBiMap;
-# accessible field net/minecraft/entity/data/DataTracker CLASS_TO_LAST_ID Lnet/minecraft/util/collection/Class2IntMap;
+# accessible field net.minecraft/entity/data/DataTracker CLASS_TO_LAST_ID Lnet/minecraft/util/collection/Class2IntMap;
+
+accessible method net/minecraft/world/level/levelgen/NoiseChunk cachedClimateSampler (Lnet/minecraft/world/level/levelgen/NoiseRouter;Ljava/util/List;)Lnet/minecraft/world/level/biome/Climate$Sampler;
+accessible method net/minecraft/world/level/levelgen/DensityFunctions$Marker wrapped ()Lnet/minecraft/world/level/levelgen/DensityFunction;
+accessible method net/minecraft/world/level/levelgen/DensityFunctions$Marker type ()Lnet/minecraft/world/level/levelgen/DensityFunctions$Marker$Type;
+accessible method net/minecraft/world/level/levelgen/DensityFunctions$HolderHolder function ()Lnet/minecraft/core/Holder;
+accessible method net/minecraft/world/level/levelgen/NoiseChunk getInterpolatedState ()Lnet/minecraft/world/level/block/state/BlockState;
+accessible method net/minecraft/world/level/chunk/ChunkAccess markPosForPostprocessing (Lnet/minecraft/core/BlockPos;)V

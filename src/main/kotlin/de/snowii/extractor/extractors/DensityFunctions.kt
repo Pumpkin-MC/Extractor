@@ -457,6 +457,8 @@ class DensityFunctions : Extractor.Extractor {
     inner class Tests : Extractor.Extractor {
         override fun fileName(): String = "density_function_tests.json"
 
+        override fun isTest(): Boolean = true
+
         override fun extract(server: MinecraftServer): JsonElement {
             val topLevelJson = JsonObject()
             val registryAccess = server.registryAccess()

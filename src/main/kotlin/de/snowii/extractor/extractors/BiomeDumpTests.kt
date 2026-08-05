@@ -1,56 +1,89 @@
-/* :cry:
 package de.snowii.extractor.extractors
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
-import net.minecraft.registry.BuiltinRegistries
-import net.minecraft.registry.DynamicRegistryManager
-import net.minecraft.registry.Registry
-import net.minecraft.registry.RegistryKeys
+import net.minecraft.core.QuartPos
+import net.minecraft.core.registries.Registries
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.math.ChunkPos
-import net.minecraft.world.HeightLimitView
-import net.minecraft.world.biome.source.*
-import net.minecraft.world.biome.source.util.MultiNoiseUtil.MultiNoiseSampler
-import net.minecraft.world.biome.source.util.MultiNoiseUtil.NoiseHypercube
-import net.minecraft.world.chunk.ChunkStatus
-import net.minecraft.world.chunk.ProtoChunk
-import net.minecraft.world.chunk.UpgradeData
-import net.minecraft.world.gen.WorldPresets
-import net.minecraft.world.gen.chunk.Blender
-import net.minecraft.world.gen.chunk.ChunkGeneratorSettings
-import net.minecraft.world.gen.chunk.ChunkNoiseSampler
-import net.minecraft.world.gen.chunk.GenerationShapeConfig
-import net.minecraft.world.gen.densityfunction.DensityFunction.EachApplier
-import net.minecraft.world.gen.densityfunction.DensityFunction.NoisePos
-import net.minecraft.world.gen.densityfunction.DensityFunctionTypes
-import net.minecraft.world.gen.noise.NoiseConfig
-import java.lang.reflect.Field
-import java.lang.reflect.Method
+import net.minecraft.world.level.ChunkPos
+import net.minecraft.world.level.LevelHeightAccessor
+import net.minecraft.world.level.biome.Climate
+import net.minecraft.world.level.biome.MultiNoiseBiomeSource
+import net.minecraft.world.level.biome.MultiNoiseBiomeSourceParameterLists
+import net.minecraft.world.level.chunk.ProtoChunk
+import net.minecraft.world.level.chunk.UpgradeData
+import net.minecraft.world.level.chunk.status.ChunkStatus
+import net.minecraft.world.level.levelgen.*
+import net.minecraft.world.level.levelgen.blending.Blender
+import java.lang.reflect.Constructor
 
 class BiomeDumpTests : Extractor.Extractor {
     override fun fileName(): String = "biome_no_blend_no_beard_0.json"
 
+    override fun isTest(): Boolean = true
+
     companion object {
-        fun createMultiNoiseSampler(config: NoiseConfig, sampler: ChunkNoiseSampler): MultiNoiseSampler {
-            var createMultiNoiseSampler: Method? = null
-            for (m: Method in sampler.javaClass.declaredMethods) {
-                if (m.name == "createMultiNoiseSampler") {
-                    m.trySetAccessible()
-                    createMultiNoiseSampler = m
+        private fun createFluidLevelSampler(settings: NoiseGeneratorSettings): Aquifer.FluidPicker {
+            val fluidLevel = Aquifer.FluidStatus(-54, net.minecraft.world.level.block.Blocks.LAVA.defaultBlockState())
+            val i = settings.seaLevel()
+            val fluidLevel2 = Aquifer.FluidStatus(i, settings.defaultFluid())
+            return Aquifer.FluidPicker { _, y, _ -> if (y < Math.min(-54, i)) fluidLevel else fluidLevel2 }
+        }
+
+        fun createMultiNoiseSampler(config: RandomState, sampler: NoiseChunk): Climate.Sampler {
+            return sampler.cachedClimateSampler(config.router(), listOf())
+        }
+
+        private fun createProtoChunk(
+            chunkPos: ChunkPos,
+            upgradeData: UpgradeData,
+            levelHeightAccessor: LevelHeightAccessor,
+            server: MinecraftServer
+        ): ProtoChunk {
+            val overworldLevel = server.overworld()
+            var ctor5: Constructor<*>? = null
+            for (ctor in ProtoChunk::class.java.declaredConstructors) {
+                if (ctor.parameterCount == 5 && ctor.parameterTypes[0] == ChunkPos::class.java && ctor.parameterTypes[1] == UpgradeData::class.java && ctor.parameterTypes[2] == LevelHeightAccessor::class.java) {
+                    ctor.isAccessible = true
+                    ctor5 = ctor
                     break
                 }
             }
+            if (ctor5 == null) {
+                throw IllegalStateException("ProtoChunk 5-arg constructor not found")
+            }
 
-            val noiseSampler = createMultiNoiseSampler!!.invoke(
-                sampler,
-                config.noiseRouter,
-                listOf<NoiseHypercube>()
-            ) as MultiNoiseSampler
+            val arg4Type = ctor5.parameterTypes[3]
+            var arg4Value: Any? = null
 
-            return noiseSampler
+            // Walk up hierarchy of overworldLevel if needed
+            var cls: Class<*>? = overworldLevel.javaClass
+            while (cls != null && arg4Value == null) {
+                for (field in cls.declaredFields) {
+                    if (arg4Type.isAssignableFrom(field.type)) {
+                        field.isAccessible = true
+                        arg4Value = field.get(overworldLevel)
+                        if (arg4Value != null) break
+                    }
+                }
+                if (arg4Value != null) break
+                for (method in cls.declaredMethods) {
+                    if (method.parameterCount == 0 && arg4Type.isAssignableFrom(method.returnType)) {
+                        method.isAccessible = true
+                        arg4Value = method.invoke(overworldLevel)
+                        if (arg4Value != null) break
+                    }
+                }
+                cls = cls.superclass
+            }
+
+            if (arg4Value == null) {
+                throw IllegalStateException("Could not extract ${arg4Type.name} from ServerLevel")
+            }
+
+            return ctor5.newInstance(chunkPos, upgradeData, levelHeightAccessor, arg4Value, null) as ProtoChunk
         }
     }
 
@@ -58,31 +91,22 @@ class BiomeDumpTests : Extractor.Extractor {
         val topLevelJson = JsonArray()
         val seed = 0L
 
-        val biomeRegistry = server.registryManager.getOrThrow(RegistryKeys.BIOME)
+        val biomeRegistry = server.registryAccess().lookupOrThrow(Registries.BIOME)
 
-        // Overworld shape config
-        val shape = GenerationShapeConfig(-64, 384, 1, 2)
-
-        val lookup = BuiltinRegistries.createWrapperLookup()
-        val wrapper = lookup.getOrThrow(RegistryKeys.CHUNK_GENERATOR_SETTINGS)
-        val noiseParams = lookup.getOrThrow(RegistryKeys.NOISE_PARAMETERS)
-
-        val ref = wrapper.getOrThrow(ChunkGeneratorSettings.OVERWORLD)
+        val ref = server.registryAccess().lookupOrThrow(Registries.NOISE_SETTINGS)
+            .getOrThrow(NoiseGeneratorSettings.OVERWORLD)
         val settings = ref.value()
-        val config = NoiseConfig.create(settings, noiseParams, seed)
 
+        val noiseParams = server.registryAccess().lookupOrThrow(Registries.NOISE)
+        val config = RandomState.create(settings, noiseParams, seed)
 
-        val options = WorldPresets.getDefaultOverworldOptions(lookup)
+        val chunkGenerator = server.overworld().chunkSource.generator
+        val biomeSource = chunkGenerator.biomeSource
 
-        var biomeSource: BiomeSource? = null
-        for (f: Field in options.chunkGenerator.javaClass.fields) {
-            if (f.name == "biomeSource") {
-                biomeSource = f.get(options.chunkGenerator) as BiomeSource
-            }
-        }
-
-        println(biomeRegistry.javaClass)
-        println(options.chunkGenerator.javaClass)
+        val levelHeightAccessor = LevelHeightAccessor.create(
+            chunkGenerator.minY,
+            chunkGenerator.genDepth
+        )
 
         for (x in 5..5) {
             for (z in 5..5) {
@@ -91,36 +115,32 @@ class BiomeDumpTests : Extractor.Extractor {
                 biomeData.addProperty("z", z)
 
                 val chunkPos = ChunkPos(x, z)
-                val chunk = ProtoChunk(
-                    chunkPos, UpgradeData.NO_UPGRADE_DATA,
-                    HeightLimitView.create(options.chunkGenerator.minimumY, options.chunkGenerator.worldHeight),
-                    server.overworld.palettesFactory, null
+                val chunk = createProtoChunk(
+                    chunkPos,
+                    UpgradeData.EMPTY,
+                    levelHeightAccessor,
+                    server
                 )
 
-                if (chunk.hasBelowZeroRetrogen()) {
-                    throw Exception("Chunk has below zero retrogen")
-                }
-
                 val testSampler =
-                    ChunkNoiseSampler(
-                        16 / shape.horizontalCellBlockCount(), config, chunkPos.startX, chunkPos.startZ,
-                        shape, object : DensityFunctionTypes.Beardifying {
+                    NoiseChunk.forChunk(
+                        chunk, config, object : DensityFunctions.BeardifierOrMarker {
                             override fun maxValue(): Double = 0.0
                             override fun minValue(): Double = 0.0
-                            override fun sample(pos: NoisePos): Double = 0.0
-                            override fun fill(densities: DoubleArray, applier: EachApplier) {
+                            override fun compute(pos: DensityFunction.FunctionContext): Double = 0.0
+                            override fun fillArray(densities: DoubleArray, contextProvider: DensityFunction.ContextProvider) {
                                 densities.fill(0.0)
                             }
-                        }, settings, null, Blender.getNoBlending()
+                        }, settings, createFluidLevelSampler(settings), Blender.empty()
                     )
                 val testNoiseSampler = createMultiNoiseSampler(config, testSampler)
 
                 // We don't have retro gen and we don't want structures
-                chunk.populateBiomes(biomeSource!!, testNoiseSampler)
-                chunk.status = ChunkStatus.BIOMES
+                chunk.fillBiomesFromNoise(biomeSource, testNoiseSampler)
+                chunk.persistedStatus = ChunkStatus.BIOMES
 
-                val minBiomeY = BiomeCoords.fromBlock(chunk.bottomY)
-                val maxBiomeY = BiomeCoords.fromBlock(chunk.topYInclusive)
+                val minBiomeY = QuartPos.fromBlock(chunk.minY)
+                val maxBiomeY = QuartPos.fromBlock(chunk.maxY)
 
                 val data = JsonArray()
                 for (biomeX in 0..3) {
@@ -128,10 +148,8 @@ class BiomeDumpTests : Extractor.Extractor {
                         for (biomeY in minBiomeY..maxBiomeY) {
                             val chunkData = JsonArray()
 
-                            val biome = chunk.getBiomeForNoiseGen(biomeX, biomeY, biomeZ)
-                            // Weird work-around because java
-                            val entry = biomeRegistry.get(biome.key.orElseThrow())
-                            val id = biomeRegistry.getRawIdOrThrow(entry)
+                            val biome = chunk.getNoiseBiome(biomeX, biomeY, biomeZ)
+                            val id = biomeRegistry.getId(biome.value())
 
                             chunkData.add(biomeX)
                             chunkData.add(biomeY)
@@ -154,12 +172,13 @@ class BiomeDumpTests : Extractor.Extractor {
     inner class MultiNoiseBiomeSourceTest : Extractor.Extractor {
         override fun fileName(): String = "multi_noise_biome_source_test.json"
 
-        override fun extract(server: MinecraftServer): JsonElement {
-            val registryManager: DynamicRegistryManager.Immutable = server.registryManager
-            val multiNoiseRegistry: Registry<MultiNoiseBiomeSourceParameterList> =
-                registryManager.getOrThrow(RegistryKeys.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST)
+        override fun isTest(): Boolean = true
 
-            val overworldBiomeSource = MultiNoiseBiomeSource.create(
+        override fun extract(server: MinecraftServer): JsonElement {
+            val registryAccess = server.registryAccess()
+            val multiNoiseRegistry = registryAccess.lookupOrThrow(Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST)
+
+            val overworldBiomeSource = MultiNoiseBiomeSource.createFromPreset(
                 multiNoiseRegistry.getOrThrow(
                     MultiNoiseBiomeSourceParameterLists.OVERWORLD
                 )
@@ -168,27 +187,36 @@ class BiomeDumpTests : Extractor.Extractor {
             val seed = 0L
             val chunkPos = ChunkPos(0, 0)
 
-            val lookup = BuiltinRegistries.createWrapperLookup()
-            val wrapper = lookup.getOrThrow(RegistryKeys.CHUNK_GENERATOR_SETTINGS)
-            val noiseParams = lookup.getOrThrow(RegistryKeys.NOISE_PARAMETERS)
-
-            val ref = wrapper.getOrThrow(ChunkGeneratorSettings.OVERWORLD)
+            val ref = registryAccess.lookupOrThrow(Registries.NOISE_SETTINGS)
+                .getOrThrow(NoiseGeneratorSettings.OVERWORLD)
             val settings = ref.value()
-            val config = NoiseConfig.create(settings, noiseParams, seed)
 
-            // Overworld shape config
-            val shape = GenerationShapeConfig(-64, 384, 1, 2)
+            val noiseParams = registryAccess.lookupOrThrow(Registries.NOISE)
+            val config = RandomState.create(settings, noiseParams, seed)
+
+            val chunkGenerator = server.overworld().chunkSource.generator
+            val levelHeightAccessor = LevelHeightAccessor.create(
+                chunkGenerator.minY,
+                chunkGenerator.genDepth
+            )
+
+            val chunk = createProtoChunk(
+                chunkPos,
+                UpgradeData.EMPTY,
+                levelHeightAccessor,
+                server
+            )
+
             val testSampler =
-                ChunkNoiseSampler(
-                    16 / shape.horizontalCellBlockCount(), config, chunkPos.startX, chunkPos.startZ,
-                    shape, object : DensityFunctionTypes.Beardifying {
+                NoiseChunk.forChunk(
+                    chunk, config, object : DensityFunctions.BeardifierOrMarker {
                         override fun maxValue(): Double = 0.0
                         override fun minValue(): Double = 0.0
-                        override fun sample(pos: NoisePos): Double = 0.0
-                        override fun fill(densities: DoubleArray, applier: EachApplier) {
+                        override fun compute(pos: DensityFunction.FunctionContext): Double = 0.0
+                        override fun fillArray(densities: DoubleArray, contextProvider: DensityFunction.ContextProvider) {
                             densities.fill(0.0)
                         }
-                    }, settings, null, Blender.getNoBlending()
+                    }, settings, createFluidLevelSampler(settings), Blender.empty()
                 )
 
             val noiseSampler = createMultiNoiseSampler(config, testSampler)
@@ -197,8 +225,8 @@ class BiomeDumpTests : Extractor.Extractor {
             for (x in -50..50) {
                 for (y in -20..50) {
                     for (z in -50..50) {
-                        val biome = overworldBiomeSource.getBiome(x, y, z, noiseSampler)
-                        val id = server.registryManager.getOrThrow(RegistryKeys.BIOME).getRawId(biome.value())
+                        val biome = overworldBiomeSource.getNoiseBiome(x, y, z, noiseSampler)
+                        val id = registryAccess.lookupOrThrow(Registries.BIOME).getId(biome.value())
 
                         val datum = JsonArray()
                         datum.add(x)
@@ -214,4 +242,3 @@ class BiomeDumpTests : Extractor.Extractor {
         }
     }
 }
-*/

@@ -90,7 +90,7 @@ class Extractor : ModInitializer {
             CustomStats(),
             Stats(),
             SlotRanges(),
-         /*   ChunkDumpTests.NoiseDump(
+            ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,
                 0,
@@ -160,14 +160,58 @@ class Extractor : ModInitializer {
                 15,
                 arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
             ),
+            ChunkDumpTests.NoiseDump(
+                "no_blend_no_beard_13579_-7_9.chunk",
+                13579,
+                -7,
+                9,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D")
+            ),
+            ChunkDumpTests.NoiseDump(
+                "nether_no_blend_no_beard_0_0.chunk",
+                0,
+                0,
+                0,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D"),
+                "nether"
+            ),
+            ChunkDumpTests.NoiseDump(
+                "nether_no_blend_no_beard_7_4.chunk",
+                0,
+                7,
+                4,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D"),
+                "nether"
+            ),
+            ChunkDumpTests.NoiseDump(
+                "end_no_blend_no_beard_0_0.chunk",
+                0,
+                0,
+                0,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D"),
+                "end"
+            ),
+            ChunkDumpTests.NoiseDump(
+                "end_no_blend_no_beard_7_4.chunk",
+                0,
+                7,
+                4,
+                arrayListOf("Interpolated", "CacheOnce", "FlatCache", "Cache2D"),
+                "end"
+            ),
             BiomeDumpTests(),
             BiomeDumpTests().MultiNoiseBiomeSourceTest(),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_0_0.chunk", 0, 0, 0),
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_7_4.chunk", 0, 7, 4),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_badlands_-595_544.chunk", 0, -595, 544),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_frozen_ocean_-119_183.chunk", 0, -119, 183),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-6_11.chunk", 13579, -6, 11),
             ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-2_15.chunk", 13579, -2, 15),
-            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-7_9.chunk", 13579, -7, 9)*/
+            ChunkDumpTests.SurfaceDump("no_blend_no_beard_surface_13579_-7_9.chunk", 13579, -7, 9),
+            ChunkDumpTests.SurfaceDump("nether_surface_no_blend_no_beard_0_0.chunk", 0, 0, 0, "nether"),
+            ChunkDumpTests.SurfaceDump("nether_surface_no_blend_no_beard_7_4.chunk", 0, 7, 4, "nether"),
+            ChunkDumpTests.SurfaceDump("end_surface_no_blend_no_beard_0_0.chunk", 0, 0, 0, "end"),
+            ChunkDumpTests.SurfaceDump("end_surface_no_blend_no_beard_7_4.chunk", 0, 7, 4, "end")
         )
 
         val outputDirectory: Path
@@ -182,9 +226,13 @@ class Extractor : ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(ServerLifecycleEvents.ServerStarted { server: MinecraftServer ->
             val timeInMillis = measureTimeMillis {
+                val testsDirectory = Files.createDirectories(outputDirectory.resolve("tests"))
+
                 for (ext in extractors) {
                     try {
-                        val out = outputDirectory.resolve(ext.fileName())
+                        val filename = ext.fileName()
+                        val out = if (ext.isTest()) testsDirectory.resolve(filename) else outputDirectory.resolve(filename)
+
                         val fileWriter = FileWriter(out.toFile(), StandardCharsets.UTF_8)
                         gson.toJson(ext.extract(server), fileWriter)
                         fileWriter.close()
@@ -203,5 +251,8 @@ class Extractor : ModInitializer {
 
         @Throws(Exception::class)
         fun extract(server: MinecraftServer): JsonElement
+
+        // Mark extractors that are test/dump outputs so they can be exported into a separate folder
+        fun isTest(): Boolean = false
     }
 }
