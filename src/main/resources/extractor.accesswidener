@@ -2,6 +2,8 @@ accessWidener v2 official
 
 accessible method net/minecraft/world/level/block/FireBlock getBurnOdds (Lnet/minecraft/world/level/block/state/BlockState;)I
 accessible method net/minecraft/world/level/block/FireBlock getIgniteOdds (Lnet/minecraft/world/level/block/state/BlockState;)I
+accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxHorizontalOffset ()F
+accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxVerticalOffset ()F
 
 accessible method net/minecraft/world/entity/LivingEntity getBaseExperienceReward (Lnet/minecraft/server/level/ServerLevel;)I
 
@@ -41,4 +43,3 @@ accessible method net/minecraft/world/level/levelgen/DensityFunctions$Marker wra
 accessible method net/minecraft/world/level/levelgen/DensityFunctions$Marker type ()Lnet/minecraft/world/level/levelgen/DensityFunctions$Marker$Type;
 accessible method net/minecraft/world/level/levelgen/DensityFunctions$HolderHolder function ()Lnet/minecraft/core/Holder;
 accessible method net/minecraft/world/level/levelgen/NoiseChunk getInterpolatedState ()Lnet/minecraft/world/level/block/state/BlockState;
-accessible method net/minecraft/world/level/chunk/ChunkAccess markPosForPostprocessing (Lnet/minecraft/core/BlockPos;)V
