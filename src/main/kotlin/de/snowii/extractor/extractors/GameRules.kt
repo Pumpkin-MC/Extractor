@@ -2,6 +2,7 @@ package de.snowii.extractor.extractors
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.mojang.brigadier.arguments.IntegerArgumentType
 import de.snowii.extractor.Extractor
 import net.minecraft.core.registries.Registries
 import net.minecraft.server.MinecraftServer
@@ -18,7 +19,16 @@ class GameRules : Extractor.Extractor {
             server.registryAccess().lookupOrThrow(Registries.GAME_RULE)
         for (rule in registry) {
             when (rule.gameRuleType()) {
-                GameRuleType.INT -> gameEventJson.addProperty(rule.toString(), rule.defaultValue() as Int)
+                GameRuleType.INT -> {
+                    val intValues = JsonObject()
+                    intValues.addProperty("default", rule.defaultValue() as Int)
+                    val argument = rule.argument()
+                    if (argument is IntegerArgumentType) {
+                        intValues.addProperty("min", argument.minimum)
+                        intValues.addProperty("max", argument.maximum)
+                    }
+                    gameEventJson.add(rule.toString(), intValues)
+                }
                 GameRuleType.BOOL -> gameEventJson.addProperty(rule.toString(), rule.defaultValue() as Boolean)
             }
         }

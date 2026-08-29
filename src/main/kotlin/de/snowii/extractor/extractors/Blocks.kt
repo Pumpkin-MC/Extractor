@@ -60,6 +60,28 @@ class Blocks : Extractor.Extractor {
         return flammableData
     }
 
+    private fun getShapeOffsetData(block: Block): JsonObject? {
+        val state = block.defaultBlockState()
+        if (!state.hasOffsetFunction()) {
+            return null
+        }
+
+        val maxHorizontal = block.maxHorizontalOffset
+        val maxVertical = block.maxVerticalOffset
+        val originOffset = state.getOffset(BlockPos.ZERO)
+        val offsetType = when (originOffset.y) {
+            0.0 -> "xz"
+            -maxVertical.toDouble() -> "xyz"
+            else -> error("Unknown shape offset function for $block")
+        }
+
+        return JsonObject().apply {
+            addProperty("type", offsetType)
+            addProperty("max_horizontal", maxHorizontal)
+            addProperty("max_vertical", maxVertical)
+        }
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonObject()
         val blocksJson = JsonArray()
@@ -78,7 +100,12 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("jump_velocity_multiplier", block.jumpFactor)
             blockJson.addProperty("hardness", block.defaultBlockState().getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO))
             blockJson.addProperty("blast_resistance", block.explosionResistance)
+            blockJson.addProperty("map_color", block.defaultMapColor().id)
             blockJson.addProperty("item_id", BuiltInRegistries.ITEM.getId(block.asItem()))
+
+            getShapeOffsetData(block)?.let {
+                blockJson.add("shape_offset", it)
+            }
 
             flammableData[block]?.let { (spreadChance, burnChance) ->
                 val flammableJson = JsonObject()

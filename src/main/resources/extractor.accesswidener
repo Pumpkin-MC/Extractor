@@ -2,6 +2,10 @@ accessWidener v2 official
 
 accessible method net/minecraft/world/level/block/FireBlock getBurnOdds (Lnet/minecraft/world/level/block/state/BlockState;)I
 accessible method net/minecraft/world/level/block/FireBlock getIgniteOdds (Lnet/minecraft/world/level/block/state/BlockState;)I
+accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxHorizontalOffset ()F
+accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxVerticalOffset ()F
+
+accessible method net/minecraft/world/entity/LivingEntity getBaseExperienceReward (Lnet/minecraft/server/level/ServerLevel;)I
 
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Mapped
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Mapped$Type
@@ -12,7 +16,6 @@ accessible class net/minecraft/world/level/levelgen/DensityFunctions$TwoArgument
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Constant
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$MulOrAdd
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$MulOrAdd$Type
-accessible class net/minecraft/world/level/levelgen/DensityFunctions$BlendDensity
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$BlendAlpha
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$BlendOffset
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$EndIslandDensityFunction
@@ -23,11 +26,20 @@ accessible class net/minecraft/world/level/levelgen/DensityFunctions$Noise
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$ShiftA
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$ShiftB
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$ShiftedNoise
-accessible class net/minecraft/world/level/levelgen/DensityFunctions$WeirdScaledSampler
-accessible class net/minecraft/world/level/levelgen/DensityFunctions$WeirdScaledSampler$RarityValueMapper
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Spline
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Spline$Coordinate
 
 accessible field net/minecraft/world/level/block/FlowerPotBlock POTTED_BY_CONTENT Ljava/util/Map;
+
+accessible field net/minecraft/stats/Stat formatter Lnet/minecraft/stats/StatFormatter;
+accessible field net/minecraft/stats/Stat value Ljava/lang/Object;
+accessible field net/minecraft/stats/StatType registry Lnet/minecraft/core/Registry;
+accessible field net/minecraft/stats/StatType displayName Lnet/minecraft/network/chat/Component;
 # accessible field net/minecraft/entity/data/TrackedDataHandlerRegistry DATA_HANDLERS Lnet/minecraft/util/collection/Int2ObjectBiMap;
-# accessible field net/minecraft/entity/data/DataTracker CLASS_TO_LAST_ID Lnet/minecraft/util/collection/Class2IntMap;
+# accessible field net.minecraft/entity/data/DataTracker CLASS_TO_LAST_ID Lnet/minecraft/util/collection/Class2IntMap;
+
+accessible method net/minecraft/world/level/levelgen/NoiseChunk cachedClimateSampler (Lnet/minecraft/world/level/levelgen/NoiseRouter;Ljava/util/List;)Lnet/minecraft/world/level/biome/Climate$Sampler;
+accessible method net/minecraft/world/level/levelgen/DensityFunctions$Marker wrapped ()Lnet/minecraft/world/level/levelgen/DensityFunction;
+accessible method net/minecraft/world/level/levelgen/DensityFunctions$Marker type ()Lnet/minecraft/world/level/levelgen/DensityFunctions$Marker$Type;
+accessible method net/minecraft/world/level/levelgen/DensityFunctions$HolderHolder function ()Lnet/minecraft/core/Holder;
+accessible method net/minecraft/world/level/levelgen/NoiseChunk getInterpolatedState ()Lnet/minecraft/world/level/block/state/BlockState;

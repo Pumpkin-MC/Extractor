@@ -14,6 +14,8 @@ class BiomeMixerTest : Extractor.Extractor {
         return "biome_mixer.json"
     }
 
+    override fun isTest(): Boolean = true
+
     companion object {
         private fun getFiddledDistance(
             seed: Long,

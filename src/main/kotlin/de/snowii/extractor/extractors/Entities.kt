@@ -10,10 +10,13 @@ import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.SpawnPlacementTypes
 import net.minecraft.world.entity.SpawnPlacements
+import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes
 import net.minecraft.world.level.storage.loot.LootTable
 
 class Entities : Extractor.Extractor {
@@ -34,11 +37,15 @@ class Entities : Extractor.Extractor {
 
             val entity = entityType.create(server.overworld(), EntitySpawnReason.NATURAL)
             if (entity != null) {
-                if (entity is LivingEntity && entityName in TARGET_HURT_SOUND_ENTITIES) {
-                    val hurtSound = getHurtSound(entity, damageSource)
-                    val hurtSoundId = hurtSound?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.path
-                    if (hurtSoundId != null) {
-                        entityJson.addProperty("hurt_sound", hurtSoundId)
+                if (entity is LivingEntity) {
+                    entityJson.addProperty("experience_reward", entity.getBaseExperienceReward(server.overworld()))
+
+                    if (entityName in TARGET_HURT_SOUND_ENTITIES) {
+                        val hurtSound = getHurtSound(entity, damageSource)
+                        val hurtSoundId = hurtSound?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.path
+                        if (hurtSoundId != null) {
+                            entityJson.addProperty("hurt_sound", hurtSoundId)
+                        }
                     }
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
@@ -46,11 +53,12 @@ class Entities : Extractor.Extractor {
                 entityJson.addProperty("limit_per_chunk", (entity as? Mob)?.maxSpawnClusterSize ?: 0)
             }
 
-            if (net.minecraft.world.entity.ai.attributes.DefaultAttributes.hasSupplier(entityType)) {
-                val supplier = net.minecraft.world.entity.ai.attributes.DefaultAttributes.getSupplier(entityType as net.minecraft.world.entity.EntityType<out LivingEntity>)
+            @Suppress("UNCHECKED_CAST")
+            if (DefaultAttributes.hasSupplier(entityType as EntityType<out LivingEntity>)) {
+                val supplier = DefaultAttributes.getSupplier(entityType)
 
                 // Backwards compatibility for top-level max_health
-                val maxHealth = net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH
+                val maxHealth = Attributes.MAX_HEALTH
                 if (supplier.hasAttribute(maxHealth)) {
                     entityJson.addProperty("max_health", supplier.getBaseValue(maxHealth))
                 }
@@ -59,12 +67,12 @@ class Entities : Extractor.Extractor {
                 for (attribute in BuiltInRegistries.ATTRIBUTE) {
                     val holder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute)
                     if (supplier.hasAttribute(holder)) {
-                        val attrObj = JsonObject()
-                        attrObj.addProperty(
-                            BuiltInRegistries.ATTRIBUTE.getKey(attribute)!!.toString(),
+                        val attributeJson = JsonObject()
+                        attributeJson.addProperty(
+                            BuiltInRegistries.ATTRIBUTE.getKey(attribute)!!.path,
                             supplier.getBaseValue(holder)
                         )
-                        attributesArray.add(attrObj)
+                        attributesArray.add(attributeJson)
                     }
                 }
                 entityJson.add("attributes", attributesArray)

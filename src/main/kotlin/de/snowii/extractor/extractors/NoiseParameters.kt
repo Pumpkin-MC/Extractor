@@ -30,10 +30,9 @@ class NoiseParameters : Extractor.Extractor {
                 noise
             ).getOrThrow()
 
-            val sanitizedName = key.identifier().path.replace('/', '_')
 
             noisesJson.add(
-                sanitizedName,
+                key.identifier().toString(),
                 json
             )
         }
