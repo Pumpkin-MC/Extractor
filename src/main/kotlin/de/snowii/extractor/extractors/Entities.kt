@@ -83,12 +83,16 @@ class Entities : Extractor.Extractor {
             entityJson.addProperty("fire_immune", entityType.fireImmune())
             entityJson.addProperty("category", entityType.category.name)
             entityJson.addProperty("can_spawn_far_from_player", entityType.canSpawnFarFromPlayer())
+            entityJson.addProperty("client_tracking_range", entityType.clientTrackingRange())
+            entityJson.addProperty("update_interval", entityType.updateInterval())
+            entityJson.addProperty("track_deltas", entityType.trackDeltas())
 
             val dimension = JsonArray()
             dimension.add(entityType.width)
             dimension.add(entityType.height)
             entityJson.add("dimension", dimension)
             entityJson.addProperty("eye_height", entityType.dimensions.eyeHeight)
+            entityJson.addProperty("spawn_dimensions_scale", entityType.spawnDimensionsScale)
 
             if (entityType.defaultLootTable.isPresent) {
                 val table = server.reloadableRegistries()

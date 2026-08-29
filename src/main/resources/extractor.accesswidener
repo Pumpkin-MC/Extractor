@@ -6,6 +6,7 @@ accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxHor
 accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxVerticalOffset ()F
 
 accessible method net/minecraft/world/entity/LivingEntity getBaseExperienceReward (Lnet/minecraft/server/level/ServerLevel;)I
+accessible field net/minecraft/world/entity/EntityType spawnDimensionsScale F
 
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Mapped
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Mapped$Type
