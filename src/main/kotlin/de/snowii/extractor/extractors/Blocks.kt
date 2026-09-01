@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.DropExperienceBlock
 import net.minecraft.world.level.block.FireBlock
 import net.minecraft.world.level.block.SupportType
-import net.minecraft.world.level.storage.loot.LootTable
 import net.minecraft.world.phys.AABB
 import java.util.*
 
@@ -118,16 +117,6 @@ class Blocks : Extractor.Extractor {
                 blockJson.add("experience", DropExperienceBlock.CODEC.codec().encodeStart(JsonOps.INSTANCE, block).getOrThrow())
             }
 
-            block.lootTable.ifPresent { key ->
-                val table = server.reloadableRegistries().getLootTable(key)
-
-                val ops = server.registryAccess().createSerializationContext(JsonOps.INSTANCE)
-
-                blockJson.add(
-                    "loot_table",
-                    LootTable.DIRECT_CODEC.encodeStart(ops, table).getOrThrow()
-                )
-            }
 
             val propsJson = JsonArray()
             for (prop in block.stateDefinition.properties) {

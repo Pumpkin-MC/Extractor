@@ -94,15 +94,6 @@ class Entities : Extractor.Extractor {
             entityJson.addProperty("eye_height", entityType.dimensions.eyeHeight)
             entityJson.addProperty("spawn_dimensions_scale", entityType.spawnDimensionsScale)
 
-            if (entityType.defaultLootTable.isPresent) {
-                val table = server.reloadableRegistries()
-                    .getLootTable(entityType.defaultLootTable.get())
-                entityJson.add(
-                    "loot_table",
-                    LootTable.DIRECT_CODEC.encodeStart(ops, table).orThrow
-                )
-            }
-
             val spawnRestriction = JsonObject()
             val data = SpawnPlacements.getPlacementType(entityType)
             val locationName = when (data) {

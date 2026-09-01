@@ -69,27 +69,6 @@ class VillagerData : Extractor.Extractor {
         }
         root.add("types", typesJson)
 
-        // Extract Trade Sets
-        val tradeSetRegistry = registryAccess.lookupOrThrow(Registries.TRADE_SET)
-        val tradeSetsJson = JsonObject()
-        tradeSetRegistry.listElements().forEach { holder ->
-            tradeSetsJson.add(
-                holder.key().identifier().path,
-                TradeSet.CODEC.encodeStart(ops, holder.value()).getOrThrow()
-            )
-        }
-        root.add("trade_sets", tradeSetsJson)
-
-        // Extract Villager Trades
-        val villagerTradeRegistry = registryAccess.lookupOrThrow(Registries.VILLAGER_TRADE)
-        val villagerTradesJson = JsonObject()
-        villagerTradeRegistry.listElements().forEach { holder ->
-            villagerTradesJson.add(
-                holder.key().identifier().path,
-                VillagerTrade.CODEC.encodeStart(ops, holder.value()).getOrThrow()
-            )
-        }
-        root.add("villager_trades", villagerTradesJson)
 
         return root
     }
