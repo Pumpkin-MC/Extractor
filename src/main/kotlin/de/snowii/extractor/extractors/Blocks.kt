@@ -32,6 +32,9 @@ class Blocks : Extractor.Extractor {
         private const val IS_FULL_CUBE      : Int = 1 shl 7
         private const val IS_SOLID_BLOCK    : Int = 1 shl 8
         private const val HAS_RANDOM_TICKS  : Int = 1 shl 9
+        private const val IS_SOLID_RENDER   : Int = 1 shl 10
+        private const val CAN_OCCLUDE       : Int = 1 shl 11
+        private const val HAS_ANALOG_OUTPUT_SIGNAL: Int = 1 shl 12
 
         private const val DOWN_SIDE_SOLID   : Int = 1 shl 0
         private const val UP_SIDE_SOLID     : Int = 1 shl 1
@@ -141,6 +144,9 @@ class Blocks : Extractor.Extractor {
                 if (state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)) stateFlags = stateFlags or IS_FULL_CUBE
                 if (state.isRedstoneConductor(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)) stateFlags = stateFlags or IS_SOLID_BLOCK
                 if (state.isRandomlyTicking) stateFlags = stateFlags or HAS_RANDOM_TICKS
+                if (state.isSolidRender) stateFlags = stateFlags or IS_SOLID_RENDER
+                if (state.canOcclude()) stateFlags = stateFlags or CAN_OCCLUDE
+                if (state.hasAnalogOutputSignal()) stateFlags = stateFlags or HAS_ANALOG_OUTPUT_SIGNAL
 
                 Direction.entries.forEach { dir ->
                     if (state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, dir)) {
