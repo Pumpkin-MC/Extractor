@@ -16,6 +16,9 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.DropExperienceBlock
 import net.minecraft.world.level.block.FireBlock
 import net.minecraft.world.level.block.SupportType
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityTypes
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import java.util.*
 
@@ -84,6 +87,29 @@ class Blocks : Extractor.Extractor {
         }
     }
 
+    private fun getSpawnRule(block: Block): String? {
+        val probes: List<EntityType<*>> = listOf(EntityTypes.ZOMBIE, EntityTypes.OCELOT, EntityTypes.PARROT, EntityTypes.POLAR_BEAR, EntityTypes.BLAZE)
+        var rule: String? = null
+        for (state in block.stateDefinition.getPossibleStates()) {
+            val results = probes.map { state.isValidSpawn(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, it) }
+            val default = state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP) && state.lightEmission < 14
+            val stateRule = when {
+                results.all { it == default } -> null
+                results.none { it } -> "never"
+                results.all { it } -> "always"
+                results == listOf(false, true, true, false, false) -> "ocelot_or_parrot"
+                results == listOf(false, false, false, true, false) -> "polar_bear"
+                results == listOf(false, false, false, false, true) -> "fire_immune"
+                else -> error("Unknown spawn rule for $block: $results")
+            }
+            if (rule != null && stateRule != null && rule != stateRule) {
+                error("Inconsistent spawn rule for $block: $rule vs $stateRule")
+            }
+            rule = rule ?: stateRule
+        }
+        return rule
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonObject()
         val blocksJson = JsonArray()
@@ -107,6 +133,10 @@ class Blocks : Extractor.Extractor {
 
             getShapeOffsetData(block)?.let {
                 blockJson.add("shape_offset", it)
+            }
+
+            getSpawnRule(block)?.let {
+                blockJson.addProperty("spawn_rule", it)
             }
 
             flammableData[block]?.let { (spreadChance, burnChance) ->
