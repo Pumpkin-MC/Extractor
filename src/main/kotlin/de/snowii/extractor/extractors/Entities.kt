@@ -49,7 +49,7 @@ class Entities : Extractor.Extractor {
 
                         val deathSound = getDeathSound(entity)
                         val deathSoundId = deathSound?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.path
-                        if (deathSound != null) {
+                        if (deathSoundId != null) {
                             entityJson.addProperty("death_sound", deathSoundId)
                         }
                     }
