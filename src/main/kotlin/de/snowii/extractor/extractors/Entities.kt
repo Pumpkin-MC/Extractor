@@ -40,11 +40,17 @@ class Entities : Extractor.Extractor {
                 if (entity is LivingEntity) {
                     entityJson.addProperty("experience_reward", entity.getBaseExperienceReward(server.overworld()))
 
-                    if (entityName in TARGET_HURT_SOUND_ENTITIES) {
+                    if (entityName !in TARGET_SOUND_BLACKLIST) {
                         val hurtSound = getHurtSound(entity, damageSource)
                         val hurtSoundId = hurtSound?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.path
                         if (hurtSoundId != null) {
                             entityJson.addProperty("hurt_sound", hurtSoundId)
+                        }
+
+                        val deathSound = getDeathSound(entity)
+                        val deathSoundId = deathSound?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.path
+                        if (deathSoundId != null) {
+                            entityJson.addProperty("death_sound", deathSoundId)
                         }
                     }
                 }
@@ -121,22 +127,20 @@ class Entities : Extractor.Extractor {
     private fun getHurtSound(entity: LivingEntity, damageSource: DamageSource) =
         getHurtSoundMethod.invoke(entity, damageSource) as? net.minecraft.sounds.SoundEvent
 
+    private fun getDeathSound(entity: LivingEntity) =
+        getDeathSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
+
     companion object {
-        private val TARGET_HURT_SOUND_ENTITIES = setOf(
-            "bogged",
-            "drowned",
-            "enderman",
-            "husk",
-            "parched",
-            "skeleton",
-            "stray",
-            "wither_skeleton",
-            "zombie",
-            "zombie_villager",
+        private val TARGET_SOUND_BLACKLIST = setOf(
+            "slime",
+            "copper_golem"
         )
 
         private val getHurtSoundMethod = LivingEntity::class.java
             .getDeclaredMethod("getHurtSound", DamageSource::class.java)
+            .apply { isAccessible = true }
+        private val getDeathSoundMethod = LivingEntity::class.java
+            .getDeclaredMethod("getDeathSound")
             .apply { isAccessible = true }
     }
 }
