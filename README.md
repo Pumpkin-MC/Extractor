@@ -14,31 +14,44 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] World Event
 - [x] Multi Noise
 - [x] Message Type
-- [x] Biomes
 - [x] Entity Pose
 - [x] Attributes
 - [x] Sound Category
 - [x] Chunk Status
 - [x] Game Event
-- [x] Game Rule
+- [x] Game Rules
 - [x] Translation (en_us)
-- [x] Noise Parameters
 - [x] Particles
-- [x] Recipes
 - [x] Entity Statuses
 - [x] Status Effects
 - [x] Screens
 - [x] Spawn Eggs
 - [x] Sounds
 - [x] SyncedRegistries
-- [x] Tags
 - [x] Tests
 - [x] Dialog
 - [x] DialogType
 - [x] DialogActionType
 - [x] DialogBodyType
+- [x] InputControlType
 - [x] Custom Stats
 - [x] Slot Ranges
+- [x] Fluids
+- [x] Data Components
+- [x] Properties
+- [x] Composter Increase Chance
+- [x] Flower Pot Transformations
+- [x] Fuels
+- [x] Recipe Remainder
+- [x] Villager Data
+- [x] Stats
+- [x] Map Colors
+- [x] Map Decorations
+- [x] Dye Colors
+- [x] Potion
+- [x] Tracked Data
+- [x] Metadata Types
+- [x] Scoreboard Display Slot
 
 ### Running
 
