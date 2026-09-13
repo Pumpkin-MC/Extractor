@@ -13,10 +13,8 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.util.CubicSpline
 import net.minecraft.world.level.levelgen.DensityFunction
 import net.minecraft.world.level.levelgen.DensityFunctions
-import net.minecraft.world.level.levelgen.NoiseRouter
 
-class DensityFunctions : Extractor.Extractor {
-    override fun fileName(): String = "density_function.json"
+class DensityFunctions {
 
     private fun extractLocationFunction(spline: CubicSpline.Multipoint<*>): JsonElement {
         val allFields = buildList {
@@ -415,43 +413,6 @@ class DensityFunctions : Extractor.Extractor {
         throw IllegalArgumentException(
             "Unhandled DensityFunction type: ${function.javaClass.name}"
         )
-    }
-
-    private fun serializeRouter(router: NoiseRouter): JsonObject {
-        val obj = JsonObject()
-
-        fun add(jsonKey: String, fn: DensityFunction) =
-            obj.add(jsonKey, serializeFunction(fn))
-
-        add("barrierNoise",                 router.barrierNoise())
-        add("fluidLevelFloodednessNoise",   router.fluidLevelFloodednessNoise())
-        add("fluidLevelSpreadNoise",        router.fluidLevelSpreadNoise())
-        add("lavaNoise",                    router.lavaNoise())
-        add("temperature",                  router.temperature())
-        add("vegetation",                   router.vegetation())
-        add("continents",                   router.continents())
-        add("erosion",                      router.erosion())
-        add("depth",                        router.depth())
-        add("ridges",                       router.ridges())
-        add("preliminarySurfaceLevel",      router.preliminarySurfaceLevel())
-        add("finalDensity",                 router.finalDensity())
-        add("veinToggle",                   router.veinToggle())
-        add("veinRidged",                   router.veinRidged())
-        add("veinGap",                      router.veinGap())
-
-        return obj
-    }
-
-    override fun extract(server: MinecraftServer): JsonElement {
-        val topLevelJson = JsonObject()
-        val registry = server.registryAccess().lookupOrThrow(Registries.NOISE_SETTINGS)
-
-        registry.listElements().forEach { entry ->
-            val settings = entry.value()
-            val path = entry.key().identifier().path
-            topLevelJson.add(path, serializeRouter(settings.noiseRouter()))
-        }
-        return topLevelJson
     }
 
     inner class Tests : Extractor.Extractor {

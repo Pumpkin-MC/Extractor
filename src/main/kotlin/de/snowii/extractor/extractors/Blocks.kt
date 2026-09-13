@@ -140,7 +140,7 @@ class Blocks : Extractor.Extractor {
                 if (state.propagatesSkylightDown()) stateFlags = stateFlags or SIDED_TRANSPARENCY
                 if (state.canBeReplaced()) stateFlags = stateFlags or REPLACEABLE
                 if (!state.fluidState.isEmpty) stateFlags = stateFlags or IS_LIQUID
-                if (state.blocksMotion()) stateFlags = stateFlags or IS_SOLID
+                if (state.isSolid) stateFlags = stateFlags or IS_SOLID
                 if (state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)) stateFlags = stateFlags or IS_FULL_CUBE
                 if (state.isRedstoneConductor(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)) stateFlags = stateFlags or IS_SOLID_BLOCK
                 if (state.isRandomlyTicking) stateFlags = stateFlags or HAS_RANDOM_TICKS
