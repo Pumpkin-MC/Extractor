@@ -3,19 +3,21 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import com.mojang.serialization.JsonOps
+import com.google.gson.JsonPrimitive
 import de.snowii.extractor.Extractor
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
+import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.EmptyBlockGetter
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.DropExperienceBlock
 import net.minecraft.world.level.block.FireBlock
 import net.minecraft.world.level.block.SupportType
+import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import java.util.*
 
@@ -84,6 +86,58 @@ class Blocks : Extractor.Extractor {
         }
     }
 
+    private fun classifySpawnFloorPredicate(block: Block): String? {
+        val states = block.stateDefinition.getPossibleStates()
+        var differsFromDefault = false
+        var never = true
+        var always = true
+        var ocelotOrParrot = true
+        var polarBear = true
+        var fireImmune = true
+
+        for (state in states) {
+            val defaultAllowed = isDefaultSpawnFloor(state)
+            for (entity in BuiltInRegistries.ENTITY_TYPE) {
+                val actual = state.isValidSpawn(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, entity)
+                if (actual != defaultAllowed) {
+                    differsFromDefault = true
+                }
+                if (actual) never = false else always = false
+                val ocelotOrParrotExpected =
+                    entity === EntityTypes.OCELOT || entity === EntityTypes.PARROT
+                if (actual != ocelotOrParrotExpected) {
+                    ocelotOrParrot = false
+                }
+                if (actual != (entity === EntityTypes.POLAR_BEAR)) {
+                    polarBear = false
+                }
+                if (actual != entity.fireImmune()) {
+                    fireImmune = false
+                }
+            }
+        }
+
+        if (!differsFromDefault) {
+            return null
+        }
+
+        return when {
+            never -> "never"
+            always -> "always"
+            ocelotOrParrot -> "ocelot_or_parrot"
+            polarBear -> "polar_bear"
+            fireImmune -> "fire_immune"
+            else -> error(
+                "Unrecognized spawn floor predicate for ${BuiltInRegistries.BLOCK.getKey(block)}"
+            )
+        }
+    }
+
+    private fun isDefaultSpawnFloor(state: BlockState): Boolean {
+        return state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP)
+            && state.lightEmission < 14
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonObject()
         val blocksJson = JsonArray()
@@ -117,9 +171,28 @@ class Blocks : Extractor.Extractor {
             }
 
             if (block is DropExperienceBlock) {
-                blockJson.add("experience", DropExperienceBlock.CODEC.codec().encodeStart(JsonOps.INSTANCE, block).getOrThrow())
+                val xpRangeField = DropExperienceBlock::class.java.getDeclaredField("xpRange")
+                xpRangeField.isAccessible = true
+                val xpRange = xpRangeField.get(block) as net.minecraft.util.valueproviders.IntProvider
+                val min = xpRange.minInclusive()
+                val max = xpRange.maxInclusive()
+                val provider: JsonElement = if (min == max) {
+                    JsonPrimitive(min)
+                } else {
+                    JsonObject().apply {
+                        addProperty("type", "minecraft:uniform")
+                        addProperty("min_inclusive", min)
+                        addProperty("max_inclusive", max)
+                    }
+                }
+                val xpJson = JsonObject()
+                xpJson.add("experience", provider)
+                blockJson.add("experience", xpJson)
             }
 
+            classifySpawnFloorPredicate(block)?.let { predicate ->
+                blockJson.addProperty("spawn_floor_predicate", predicate)
+            }
 
             val propsJson = JsonArray()
             for (prop in block.stateDefinition.properties) {

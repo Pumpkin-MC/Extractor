@@ -17,6 +17,8 @@ import net.minecraft.world.level.chunk.UpgradeData
 import net.minecraft.world.level.chunk.status.ChunkStatus
 import net.minecraft.world.level.levelgen.*
 import net.minecraft.world.level.levelgen.blending.Blender
+import net.minecraft.world.level.levelgen.densityfunction.DensityVolume
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext
 import java.lang.reflect.Constructor
 
 class BiomeDumpTests : Extractor.Extractor {
@@ -33,7 +35,13 @@ class BiomeDumpTests : Extractor.Extractor {
         }
 
         fun createMultiNoiseSampler(config: RandomState, sampler: NoiseChunk): Climate.Sampler {
-            return sampler.cachedClimateSampler(config.router(), listOf())
+            return config.router().createClimateSampler(sampler.cachingSamplers())
+        }
+
+        private fun RandomState.router(): NoiseRouter {
+            val field = javaClass.getDeclaredField("router")
+            field.isAccessible = true
+            return field.get(this) as NoiseRouter
         }
 
         private fun createProtoChunk(
@@ -98,7 +106,7 @@ class BiomeDumpTests : Extractor.Extractor {
         val settings = ref.value()
 
         val noiseParams = server.registryAccess().lookupOrThrow(Registries.NOISE)
-        val config = RandomState.create(settings, noiseParams, seed)
+        val config = RandomState.create(noiseParams, seed, settings)
 
         val chunkGenerator = server.overworld().chunkSource.generator
         val biomeSource = chunkGenerator.biomeSource
@@ -123,20 +131,20 @@ class BiomeDumpTests : Extractor.Extractor {
                 )
 
                 val testSampler =
-                    NoiseChunk.forChunk(
-                        chunk, config, object : DensityFunctions.BeardifierOrMarker {
-                            override fun maxValue(): Double = 0.0
-                            override fun minValue(): Double = 0.0
-                            override fun compute(pos: DensityFunction.FunctionContext): Double = 0.0
-                            override fun fillArray(densities: DoubleArray, contextProvider: DensityFunction.ContextProvider) {
-                                densities.fill(0.0)
-                            }
-                        }, settings, createFluidLevelSampler(settings), Blender.empty()
+                    NoiseChunk(
+                        config,
+                        object : Beardifier(emptyList(), emptyList(), null) {
+                            override fun sampleValue(context: SamplerContext, x: Int, y: Int, z: Int): Float = 0.0f
+                        },
+                        settings,
+                        createFluidLevelSampler(settings),
+                        Blender.empty(),
+                        DensityVolume(16, chunk.height, 16, chunk.pos.minBlockX, chunk.minY, chunk.pos.minBlockZ)
                     )
                 val testNoiseSampler = createMultiNoiseSampler(config, testSampler)
 
                 // We don't have retro gen and we don't want structures
-                chunk.fillBiomesFromNoise(biomeSource, testNoiseSampler)
+                chunk.fillBiomesFromNoise(biomeSource.createResolver(testNoiseSampler))
                 chunk.persistedStatus = ChunkStatus.BIOMES
 
                 val minBiomeY = QuartPos.fromBlock(chunk.minY)
@@ -192,7 +200,7 @@ class BiomeDumpTests : Extractor.Extractor {
             val settings = ref.value()
 
             val noiseParams = registryAccess.lookupOrThrow(Registries.NOISE)
-            val config = RandomState.create(settings, noiseParams, seed)
+            val config = RandomState.create(noiseParams, seed, settings)
 
             val chunkGenerator = server.overworld().chunkSource.generator
             val levelHeightAccessor = LevelHeightAccessor.create(
@@ -208,15 +216,15 @@ class BiomeDumpTests : Extractor.Extractor {
             )
 
             val testSampler =
-                NoiseChunk.forChunk(
-                    chunk, config, object : DensityFunctions.BeardifierOrMarker {
-                        override fun maxValue(): Double = 0.0
-                        override fun minValue(): Double = 0.0
-                        override fun compute(pos: DensityFunction.FunctionContext): Double = 0.0
-                        override fun fillArray(densities: DoubleArray, contextProvider: DensityFunction.ContextProvider) {
-                            densities.fill(0.0)
-                        }
-                    }, settings, createFluidLevelSampler(settings), Blender.empty()
+                NoiseChunk(
+                    config,
+                    object : Beardifier(emptyList(), emptyList(), null) {
+                        override fun sampleValue(context: SamplerContext, x: Int, y: Int, z: Int): Float = 0.0f
+                    },
+                    settings,
+                    createFluidLevelSampler(settings),
+                    Blender.empty(),
+                    DensityVolume(16, chunk.height, 16, chunk.pos.minBlockX, chunk.minY, chunk.pos.minBlockZ)
                 )
 
             val noiseSampler = createMultiNoiseSampler(config, testSampler)
@@ -225,7 +233,7 @@ class BiomeDumpTests : Extractor.Extractor {
             for (x in -50..50) {
                 for (y in -20..50) {
                     for (z in -50..50) {
-                        val biome = overworldBiomeSource.getNoiseBiome(x, y, z, noiseSampler)
+                        val biome = overworldBiomeSource.getNoiseBiome(noiseSampler.sample(x, y, z))
                         val id = registryAccess.lookupOrThrow(Registries.BIOME).getId(biome.value())
 
                         val datum = JsonArray()

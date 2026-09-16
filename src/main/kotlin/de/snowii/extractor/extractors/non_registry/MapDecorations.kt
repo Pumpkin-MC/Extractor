@@ -20,8 +20,6 @@ class MapDecorations : Extractor.Extractor {
             json.addProperty("name", key.path)
             json.addProperty("asset_name", type.assetId().path)
             json.addProperty("show_on_item_frame", type.showOnItemFrame())
-            json.addProperty("map_color", type.mapColor())
-            json.addProperty("exploration_map_element", type.explorationMapElement())
             json.addProperty("track_count", type.trackCount())
             array.add(json)
         }

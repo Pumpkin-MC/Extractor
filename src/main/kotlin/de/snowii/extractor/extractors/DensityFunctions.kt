@@ -11,8 +11,23 @@ import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.MinecraftServer
 import net.minecraft.util.CubicSpline
-import net.minecraft.world.level.levelgen.DensityFunction
-import net.minecraft.world.level.levelgen.DensityFunctions
+import net.minecraft.world.level.levelgen.densityfunction.DensityFunction
+import net.minecraft.world.level.levelgen.densityfunction.DensityFunctions as McDensityFunctions
+import net.minecraft.world.level.levelgen.densityfunction.generator.ConstantFunction
+import net.minecraft.world.level.levelgen.densityfunction.generator.EndIslandFunction
+import net.minecraft.world.level.levelgen.densityfunction.generator.GradientFunction
+import net.minecraft.world.level.levelgen.densityfunction.generator.NoiseFunction
+import net.minecraft.world.level.levelgen.densityfunction.generator.ShiftNoiseFunction
+import net.minecraft.world.level.levelgen.densityfunction.generator.SimpleDensityFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.BinaryFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.BlendDensityFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.CacheFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.ClampFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.InterpolatedFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.LerpFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.RangeChoiceFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.SplineFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.UnaryFunction
 
 class DensityFunctions {
 
@@ -38,7 +53,7 @@ class DensityFunctions {
                 return serializeFunction(v)
             }
 
-            if (v is DensityFunctions.Spline.Coordinate) {
+            if (v is SplineFunction.Coordinate) {
                 return serializeFunction(v.function())
             }
 
@@ -95,13 +110,13 @@ class DensityFunctions {
         return obj
     }
 
-    private fun noiseHolderPath(holder: DensityFunction.NoiseHolder): String {
-        val key = holder.noiseData().unwrapKey().orElse(null)
+    private fun noiseHolderPath(holder: Holder<*>): String {
+        val key = holder.unwrapKey().orElse(null)
         return key?.identifier()?.path ?: "inline"
     }
 
     private fun serializeFunction(function: DensityFunction): JsonObject {
-        if (function is DensityFunctions.HolderHolder) {
+        if (function is McDensityFunctions.HolderHolder) {
             return serializeFunction(function.function().value())
         }
 
@@ -109,46 +124,45 @@ class DensityFunctions {
         val simpleName = function.javaClass.simpleName
 
         // ── Marker / Wrapping ──────────────────────────────────────────────────
-        if (function is DensityFunctions.Marker) {
+        if (function is BlendDensityFunction) {
             // BlendDensity was demoted from its own class to a Marker type in newer versions.
             // We intercept it here to maintain the legacy JSON structure.
-            if (function.type().serializedName == "blend_density") {
-                obj.add("_class", JsonPrimitive("BlendDensity"))
-                val value = JsonObject()
-                value.add("input", serializeFunction(function.wrapped()))
-                obj.add("value", value)
-                return obj
-            }
-
-            val rustTypeName = when (function.type().serializedName) {
-                "flat_cache"        -> "FlatCache"
-                "cache_2d"          -> "Cache2D"
-                "interpolated"      -> "Interpolated"
-                "cache_once"        -> "CacheOnce"
-                "cache_all_in_cell" -> "CellCache"
-                else -> function.type().serializedName
-            }
+            obj.add("_class", JsonPrimitive("BlendDensity"))
+            val value = JsonObject()
+            value.add("input", serializeFunction(function.input()))
+            obj.add("value", value)
+            return obj
+        }
+        if (function is InterpolatedFunction) {
             obj.add("_class", JsonPrimitive("Wrapping"))
             val value = JsonObject()
-            value.add("type", JsonPrimitive(rustTypeName))
-            value.add("wrapped", serializeFunction(function.wrapped()))
+            value.add("type", JsonPrimitive("Interpolated"))
+            value.add("wrapped", serializeFunction(function.input()))
+            obj.add("value", value)
+            return obj
+        }
+        if (function is CacheFunction) {
+            obj.add("_class", JsonPrimitive("Wrapping"))
+            val value = JsonObject()
+            value.add("type", JsonPrimitive("CacheOnce"))
+            value.add("wrapped", serializeFunction(function.input()))
             obj.add("value", value)
             return obj
         }
 
         // ── Spline ────────────────────────────────────────────────────────────
-        if (function is DensityFunctions.Spline) {
+        if (function is SplineFunction) {
             obj.add("_class", JsonPrimitive("Spline"))
             val value = JsonObject()
-            value.add("minValue", JsonPrimitive(function.minValue()))
-            value.add("maxValue", JsonPrimitive(function.maxValue()))
+            value.add("minValue", JsonPrimitive(function.range().min()))
+            value.add("maxValue", JsonPrimitive(function.range().max()))
             value.add("spline", serializeSpline(function.spline()))
             obj.add("value", value)
             return obj
         }
 
         // ── Constant ──────────────────────────────────────────────────────────
-        if (function is DensityFunctions.Constant) {
+        if (function is ConstantFunction) {
             obj.add("_class", JsonPrimitive("Constant"))
             val value = JsonObject()
             value.add("value", JsonPrimitive(function.value()))
@@ -157,103 +171,67 @@ class DensityFunctions {
         }
 
         // ── Stateless singletons ──────────────────────────────────────────────
-        if (function is DensityFunctions.BlendAlpha) {
+        if (function === SimpleDensityFunction.BLEND_ALPHA) {
             obj.add("_class", JsonPrimitive("BlendAlpha"))
             return obj
         }
-        if (function is DensityFunctions.BlendOffset) {
+        if (function === SimpleDensityFunction.BLEND_OFFSET) {
             obj.add("_class", JsonPrimitive("BlendOffset"))
             return obj
         }
-        if (function is DensityFunctions.BeardifierOrMarker) {
+        if (function === SimpleDensityFunction.BEARDIFIER) {
             obj.add("_class", JsonPrimitive("Beardifier"))
             return obj
         }
-        if (function is DensityFunctions.EndIslandDensityFunction) {
+        if (function is EndIslandFunction) {
             obj.add("_class", JsonPrimitive("EndIslands"))
             return obj
         }
 
+        if (function is LerpFunction) {
+            val sub = BinaryFunction(BinaryFunction.Type.SUB, function.second(), function.first())
+            val mul = BinaryFunction(BinaryFunction.Type.MUL, function.alpha(), sub)
+            return serializeFunction(BinaryFunction(BinaryFunction.Type.ADD, function.first(), mul))
+        }
+
         // ── TwoArgumentSimpleFunction (Binary / Linear) ───────────────────────
-        if (function is DensityFunctions.TwoArgumentSimpleFunction) {
+        if (function is BinaryFunction) {
             val value = JsonObject()
-
-            val mulOrAddClass = try {
-                Class.forName("net.minecraft.world.level.levelgen.DensityFunctions\$MulOrAdd")
-            } catch (_: ClassNotFoundException) { null }
-
-            if (mulOrAddClass != null && mulOrAddClass.isInstance(function)) {
-                obj.add("_class", JsonPrimitive("LinearOperation"))
-
-                val specificTypeField = mulOrAddClass.getDeclaredField("specificType")
-                specificTypeField.isAccessible = true
-                val specificType = specificTypeField.get(function) as Enum<*>
-                value.add("specificType", JsonPrimitive(specificType.name))
-
-                val inputField = mulOrAddClass.getDeclaredField("input")
-                inputField.isAccessible = true
-                value.add("input", serializeFunction(inputField.get(function) as DensityFunction))
-
-                val argumentField = mulOrAddClass.getDeclaredField("argument")
-                argumentField.isAccessible = true
-                value.add("argument", JsonPrimitive(argumentField.get(function) as Double))
-
-                val minValueField = mulOrAddClass.getDeclaredField("minValue")
-                minValueField.isAccessible = true
-                value.add("minValue", JsonPrimitive(minValueField.get(function) as Double))
-
-                val maxValueField = mulOrAddClass.getDeclaredField("maxValue")
-                maxValueField.isAccessible = true
-                value.add("maxValue", JsonPrimitive(maxValueField.get(function) as Double))
-
-            } else {
-                obj.add("_class", JsonPrimitive("BinaryOperation"))
-
-                val typeEnum = function.type() as Enum<*>
-                value.add("type", JsonPrimitive(typeEnum.name))
-
-                value.add("argument1", serializeFunction(function.argument1()))
-                value.add("argument2", serializeFunction(function.argument2()))
-
-                val ap2Class = function.javaClass
-                val minF = ap2Class.getDeclaredField("minValue")
-                minF.isAccessible = true
-                value.add("minValue", JsonPrimitive(minF.get(function) as Double))
-
-                val maxF = ap2Class.getDeclaredField("maxValue")
-                maxF.isAccessible = true
-                value.add("maxValue", JsonPrimitive(maxF.get(function) as Double))
-            }
-
+            obj.add("_class", JsonPrimitive("BinaryOperation"))
+            value.add("type", JsonPrimitive(function.type().name))
+            value.add("argument1", serializeFunction(function.left()))
+            value.add("argument2", serializeFunction(function.right()))
+            value.add("minValue", JsonPrimitive(function.range().min()))
+            value.add("maxValue", JsonPrimitive(function.range().max()))
             obj.add("value", value)
             return obj
         }
 
         // ── Mapped (UnaryOperation) ───────────────────────────────────────────
-        if (function is DensityFunctions.Mapped) {
+        if (function is UnaryFunction) {
             obj.add("_class", JsonPrimitive("UnaryOperation"))
             val value = JsonObject()
-            value.add("type", JsonPrimitive(function.type().serializedName.uppercase()))
+            value.add("type", JsonPrimitive(function.type().name))
             value.add("input", serializeFunction(function.input()))
-            value.add("minValue", JsonPrimitive(function.minValue()))
-            value.add("maxValue", JsonPrimitive(function.maxValue()))
+            value.add("minValue", JsonPrimitive(function.range().min()))
+            value.add("maxValue", JsonPrimitive(function.range().max()))
             obj.add("value", value)
             return obj
         }
 
         // ── Clamp ─────────────────────────────────────────────────────────────
-        if (function is DensityFunctions.Clamp) {
+        if (function is ClampFunction) {
             obj.add("_class", JsonPrimitive("Clamp"))
             val value = JsonObject()
             value.add("input", serializeFunction(function.input()))
-            value.add("minValue", JsonPrimitive(function.minValue()))
-            value.add("maxValue", JsonPrimitive(function.maxValue()))
+            value.add("minValue", JsonPrimitive(function.min()))
+            value.add("maxValue", JsonPrimitive(function.max()))
             obj.add("value", value)
             return obj
         }
 
         // ── RangeChoice ───────────────────────────────────────────────────────
-        if (function is DensityFunctions.RangeChoice) {
+        if (function is RangeChoiceFunction) {
             obj.add("_class", JsonPrimitive("RangeChoice"))
             val value = JsonObject()
             value.add("input", serializeFunction(function.input()))
@@ -266,52 +244,44 @@ class DensityFunctions {
         }
 
         // ── Noise ─────────────────────────────────────────────────────────────
-        if (function is DensityFunctions.Noise) {
+        if (function is NoiseFunction) {
             obj.add("_class", JsonPrimitive("Noise"))
             val value = JsonObject()
             value.add("noise", JsonPrimitive(noiseHolderPath(function.noise())))
             value.add("xzScale", JsonPrimitive(function.xzScale()))
             value.add("yScale", JsonPrimitive(function.yScale()))
+            if (function.shiftX() !== McDensityFunctions.zero() ||
+                function.shiftY() !== McDensityFunctions.zero() ||
+                function.shiftZ() !== McDensityFunctions.zero()
+            ) {
+                obj.add("_class", JsonPrimitive("ShiftedNoise"))
+                value.add("shiftX", serializeFunction(function.shiftX()))
+                value.add("shiftY", serializeFunction(function.shiftY()))
+                value.add("shiftZ", serializeFunction(function.shiftZ()))
+            }
             obj.add("value", value)
             return obj
         }
 
         // ── ShiftA / ShiftB / Shift ───────────────────────────────────────────
-        if (function is DensityFunctions.ShiftA) {
+        if (function is ShiftNoiseFunction.ShiftA) {
             obj.add("_class", JsonPrimitive("ShiftA"))
             val value = JsonObject()
             value.add("offsetNoise", JsonPrimitive(noiseHolderPath(function.offsetNoise())))
             obj.add("value", value)
             return obj
         }
-        if (function is DensityFunctions.ShiftB) {
+        if (function is ShiftNoiseFunction.ShiftB) {
             obj.add("_class", JsonPrimitive("ShiftB"))
             val value = JsonObject()
             value.add("offsetNoise", JsonPrimitive(noiseHolderPath(function.offsetNoise())))
             obj.add("value", value)
             return obj
         }
-        if (simpleName == "Shift") {
+        if (function is ShiftNoiseFunction) {
             obj.add("_class", JsonPrimitive("Shift"))
             val value = JsonObject()
-            val offsetF = function.javaClass.getDeclaredField("offsetNoise")
-            offsetF.isAccessible = true
-            val offsetNoise = offsetF.get(function) as DensityFunction.NoiseHolder
-            value.add("offsetNoise", JsonPrimitive(noiseHolderPath(offsetNoise)))
-            obj.add("value", value)
-            return obj
-        }
-
-        // ── ShiftedNoise ──────────────────────────────────────────────────────
-        if (function is DensityFunctions.ShiftedNoise) {
-            obj.add("_class", JsonPrimitive("ShiftedNoise"))
-            val value = JsonObject()
-            value.add("shiftX", serializeFunction(function.shiftX()))
-            value.add("shiftY", serializeFunction(function.shiftY()))
-            value.add("shiftZ", serializeFunction(function.shiftZ()))
-            value.add("xzScale", JsonPrimitive(function.xzScale()))
-            value.add("yScale", JsonPrimitive(function.yScale()))
-            value.add("noise", JsonPrimitive(noiseHolderPath(function.noise())))
+            value.add("offsetNoise", JsonPrimitive(noiseHolderPath(function.offsetNoise())))
             obj.add("value", value)
             return obj
         }
@@ -345,18 +315,18 @@ class DensityFunctions {
             value.add("xzFactor",             JsonPrimitive(xzFactor))
             value.add("yFactor",              JsonPrimitive(yFactor))
             value.add("smearScaleMultiplier", JsonPrimitive(smear))
-            value.add("maxValue",             JsonPrimitive(function.maxValue()))
+            value.add("maxValue",             JsonPrimitive(function.range().max()))
 
             obj.add("value", value)
             return obj
         }
 
         // ── YClampedGradient ──────────────────────────────────────────────────
-        if (function is DensityFunctions.YClampedGradient) {
+        if (function is GradientFunction) {
             obj.add("_class", JsonPrimitive("YClampedGradient"))
             val value = JsonObject()
-            value.add("fromY", JsonPrimitive(function.fromY()))
-            value.add("toY", JsonPrimitive(function.toY()))
+            value.add("fromY", JsonPrimitive(function.fromCoordinate()))
+            value.add("toY", JsonPrimitive(function.toCoordinate()))
             value.add("fromValue", JsonPrimitive(function.fromValue()))
             value.add("toValue", JsonPrimitive(function.toValue()))
             obj.add("value", value)
@@ -364,7 +334,7 @@ class DensityFunctions {
         }
 
         // ── IntervalSelect ────────────────────────────────────────────────────
-        if (simpleName == "IntervalSelect") {
+        if (simpleName == "IntervalSelect" || simpleName == "IntervalSelectFunction") {
             obj.add("_class", JsonPrimitive("IntervalSelect"))
             val value = JsonObject()
             val cls = function.javaClass
@@ -392,7 +362,7 @@ class DensityFunctions {
         }
 
         // ── FindTopSurface ────────────────────────────────────────────────────
-        if (simpleName == "FindTopSurface") {
+        if (simpleName == "FindTopSurface" || simpleName == "FindTopSurfaceFunction") {
             obj.add("_class", JsonPrimitive("FindTopSurface"))
             val value = JsonObject()
             val cls = function.javaClass
