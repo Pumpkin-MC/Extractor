@@ -124,8 +124,10 @@ class MultiNoise : Extractor.Extractor {
                 .getOrThrow(NoiseGeneratorSettings.OVERWORLD)
             val noiseParams = registryAccess.lookupOrThrow(Registries.NOISE)
 
-            val randomState = RandomState.create(noiseSettings.value(), noiseParams, seed)
-            val sampler = randomState.sampler()
+            val randomState = RandomState.create(noiseParams, seed, noiseSettings.value())
+            val sampler = randomState.createClimateSampler(
+                net.minecraft.world.level.levelgen.densityfunction.SamplerContext.EMPTY_UNCACHED
+            )
 
             for (x in 0..15) {
                 for (y in -64..319 step 4) {

@@ -18,8 +18,16 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.ProtoChunk
 import net.minecraft.world.level.chunk.UpgradeData
 import net.minecraft.world.level.chunk.status.ChunkStatus
+import net.minecraft.world.level.chunk.ChunkGenerator
 import net.minecraft.world.level.levelgen.*
 import net.minecraft.world.level.levelgen.blending.Blender
+import net.minecraft.world.level.levelgen.densityfunction.DensityFunction
+import net.minecraft.world.level.levelgen.densityfunction.DensityVolume
+import net.minecraft.world.level.levelgen.densityfunction.DfRewriteRule
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext
+import net.minecraft.world.level.levelgen.densityfunction.DensityFunctions as McDensityFunctions
+import net.minecraft.world.level.levelgen.densityfunction.op.CacheFunction
+import net.minecraft.world.level.levelgen.densityfunction.op.InterpolatedFunction
 import java.lang.reflect.Constructor
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
@@ -97,6 +105,9 @@ class ChunkDumpTests {
             chunkNoiseSampler: NoiseChunk,
             shapeConfig: NoiseSettings,
             chunk: ProtoChunk,
+            chunkGenerator: ChunkGenerator,
+            randomState: RandomState,
+            heightAccessor: LevelHeightAccessor,
         ): ProtoChunk {
             val heightmap = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.OCEAN_FLOOR_WG)
             val heightmap2 = chunk.getOrCreateHeightmapUnprimed(Heightmap.Types.WORLD_SURFACE_WG)
@@ -104,10 +115,11 @@ class ChunkDumpTests {
             val i = chunkPos.minBlockX
             val j = chunkPos.minBlockZ
             val aquiferSampler = chunkNoiseSampler.aquifer()
-            chunkNoiseSampler.initializeForFirstCellX()
+            val samplers = chunkNoiseSampler.cachingSamplers()
+            val finalDensity = randomState.router().finalDensity()
             val mutable = BlockPos.MutableBlockPos()
-            val k = shapeConfig.cellWidth
-            val l = shapeConfig.cellHeight
+            val k = 4
+            val l = 8
             val m = 16 / k
             val n = 16 / k
 
@@ -115,15 +127,11 @@ class ChunkDumpTests {
             val minimumCellY = Math.floorDiv(shapeConfig.minY(), l)
 
             for (o in 0..<m) {
-                chunkNoiseSampler.advanceCellX(o)
-
                 for (p in 0..<n) {
                     var q = chunk.sectionsCount - 1
                     var chunkSection = chunk.getSection(q)
 
                     for (r in cellHeight - 1 downTo 0) {
-                        chunkNoiseSampler.selectCellYZ(r, p)
-
                         for (s in l - 1 downTo 0) {
                             val t = (minimumCellY + r) * l + s
                             val u = t and 15
@@ -133,21 +141,15 @@ class ChunkDumpTests {
                                 chunkSection = chunk.getSection(v)
                             }
 
-                            val d = s.toDouble() / l
-                            chunkNoiseSampler.updateForY(t, d)
-
                             for (w in 0..<k) {
                                 val x = i + o * k + w
                                 val y = x and 15
-                                val e = w.toDouble() / k
-                                chunkNoiseSampler.updateForX(x, e)
 
                                 for (z in 0..<k) {
                                     val aa = j + p * k + z
                                     val ab = aa and 15
-                                    val f = z.toDouble() / k
-                                    chunkNoiseSampler.updateForZ(aa, f)
-                                    var blockState = chunkNoiseSampler.getInterpolatedState()
+                                    val density = samplers.sampleValue(finalDensity, x, t, aa).toDouble()
+                                    var blockState = aquiferSampler.computeSubstance(x, t, aa, density)
                                     if (blockState == null) {
                                         blockState = settings.defaultBlock()
                                     }
@@ -165,11 +167,8 @@ class ChunkDumpTests {
                         }
                     }
                 }
-
-                chunkNoiseSampler.swapSlices()
             }
 
-            chunkNoiseSampler.stopInterpolation()
             return chunk
         }
 
@@ -178,40 +177,37 @@ class ChunkDumpTests {
             startZ: Int,
             sampler: NoiseChunk,
             config: NoiseSettings,
-            settings: NoiseGeneratorSettings
+            settings: NoiseGeneratorSettings,
+            chunkGenerator: ChunkGenerator,
+            randomState: RandomState,
+            heightAccessor: LevelHeightAccessor,
         ): IntArray? {
             val result = IntArray(16 * 16 * config.height())
-
-            sampler.initializeForFirstCellX()
-            val k = config.cellWidth
-            val l = config.cellHeight
+            val k = 4
+            val l = 8
 
             val m = 16 / k
             val n = 16 / k
 
             val cellHeight = config.height() / l
             val minimumCellY = Math.floorDiv(config.minY(), l)
+            val aquiferSampler = sampler.aquifer()
+            val samplers = sampler.cachingSamplers()
+            val finalDensity = randomState.router().finalDensity()
 
             for (o in 0..<m) {
-                sampler.advanceCellX(o)
                 for (p in 0..<n) {
                     for (r in (0..<cellHeight).reversed()) {
-                        sampler.selectCellYZ(r, p)
                         for (s in (0..<l).reversed()) {
                             val t = (minimumCellY + r) * l + s
-                            val d = s.toDouble() / l.toDouble()
-                            sampler.updateForY(t, d)
                             for (w in 0..<k) {
                                 val x = startX + o * k + w
                                 val y = x and 15
-                                val e = w.toDouble() / k.toDouble()
-                                sampler.updateForX(x, e)
                                 for (z in 0..<k) {
                                     val aa = startZ + p * k + z
                                     val ab = aa and 15
-                                    val f = z.toDouble() / k.toDouble()
-                                    sampler.updateForZ(aa, f)
-                                    var blockState = sampler.getInterpolatedState()
+                                    val density = samplers.sampleValue(finalDensity, x, t, aa).toDouble()
+                                    var blockState = aquiferSampler.computeSubstance(x, t, aa, density)
                                     if (blockState == null) {
                                         blockState = settings.defaultBlock()
                                     }
@@ -222,54 +218,95 @@ class ChunkDumpTests {
                         }
                     }
                 }
-                sampler.swapSlices()
             }
-            sampler.stopInterpolation()
             return result
         }
 
-        class WrapperRemoverVisitor(private val wrappersToKeep: Iterable<String>) : DensityFunction.Visitor {
-            override fun apply(densityFunction: DensityFunction): DensityFunction {
+        class WrapperRemoverVisitor(private val wrappersToKeep: Iterable<String>) : DfRewriteRule {
+            override fun rewrite(densityFunction: DensityFunction): DensityFunction {
                 when (densityFunction) {
-                    is DensityFunctions.Marker -> {
-                        val name = densityFunction.type().toString()
+                    is InterpolatedFunction -> {
+                        val name = "Interpolated"
                         if (wrappersToKeep.contains(name)) {
-                            return densityFunction
+                            return densityFunction.rewriteChildren(this)
                         }
-                        return this.apply(densityFunction.wrapped())
+                        return this.rewrite(densityFunction.input())
                     }
 
-                    is DensityFunctions.HolderHolder -> {
-                        return this.apply(densityFunction.function().value())
+                    is CacheFunction -> {
+                        val name = "CacheOnce"
+                        if (wrappersToKeep.contains(name) ||
+                            wrappersToKeep.contains("FlatCache") ||
+                            wrappersToKeep.contains("Cache2D") ||
+                            wrappersToKeep.contains("CellCache")
+                        ) {
+                            return densityFunction.rewriteChildren(this)
+                        }
+                        return this.rewrite(densityFunction.input())
                     }
 
-                    else -> return densityFunction
+                    is McDensityFunctions.HolderHolder -> {
+                        return this.rewrite(densityFunction.function().value())
+                    }
+
+                    else -> return densityFunction.rewriteChildren(this)
                 }
             }
         }
 
-        class WrapperValidateVisitor(private val wrappersToKeep: Iterable<String>) : DensityFunction.Visitor {
-            override fun apply(densityFunction: DensityFunction): DensityFunction {
+        class WrapperValidateVisitor(private val wrappersToKeep: Iterable<String>) : DfRewriteRule {
+            override fun rewrite(densityFunction: DensityFunction): DensityFunction {
                 when (densityFunction) {
-                    is DensityFunctions.Marker -> {
-                        val name = densityFunction.type().toString()
+                    is InterpolatedFunction -> {
+                        val name = "Interpolated"
                         if (wrappersToKeep.contains(name)) {
-                            return densityFunction
+                            return densityFunction.rewriteChildren(this)
                         }
                         throw Exception(name + "is still in the function!")
                     }
 
-                    is DensityFunctions.HolderHolder -> {
-                        return this.apply(densityFunction.function().value())
+                    is CacheFunction -> {
+                        val name = "CacheOnce"
+                        if (wrappersToKeep.contains(name) ||
+                            wrappersToKeep.contains("FlatCache") ||
+                            wrappersToKeep.contains("Cache2D") ||
+                            wrappersToKeep.contains("CellCache")
+                        ) {
+                            return densityFunction.rewriteChildren(this)
+                        }
+                        throw Exception(name + "is still in the function!")
                     }
 
-                    else -> return densityFunction
+                    is McDensityFunctions.HolderHolder -> {
+                        return this.rewrite(densityFunction.function().value())
+                    }
+
+                    else -> return densityFunction.rewriteChildren(this)
                 }
             }
         }
 
+        private fun RandomState.router(): NoiseRouter {
+            val field = javaClass.getDeclaredField("router")
+            field.isAccessible = true
+            return field.get(this) as NoiseRouter
+        }
+
+        private fun mapRouter(router: NoiseRouter, rule: DfRewriteRule): NoiseRouter {
+            return NoiseRouter(
+                rule.rewrite(router.temperature()),
+                rule.rewrite(router.vegetation()),
+                rule.rewrite(router.continents()),
+                rule.rewrite(router.erosion()),
+                rule.rewrite(router.depth()),
+                rule.rewrite(router.ridges()),
+                rule.rewrite(router.chunkSurfaceLevel()),
+                rule.rewrite(router.finalDensity()),
+            )
+        }
+
         private fun removeWrappers(config: RandomState, wrappersToKeep: Iterable<String>) {
-            val noiseRouter = config.router().mapAll(WrapperRemoverVisitor(wrappersToKeep))
+            val noiseRouter = mapRouter(config.router(), WrapperRemoverVisitor(wrappersToKeep))
             for (field in config.javaClass.declaredFields) {
                 if (field.name == "router") {
                     field.isAccessible = true
@@ -281,7 +318,7 @@ class ChunkDumpTests {
         }
 
         fun createMultiNoiseSampler(config: RandomState, sampler: NoiseChunk): net.minecraft.world.level.biome.Climate.Sampler {
-            return sampler.cachedClimateSampler(config.router(), listOf())
+            return config.router().createClimateSampler(sampler.cachingSamplers())
         }
     }
 
@@ -314,7 +351,7 @@ class ChunkDumpTests {
             val settings = ref.value()
 
             val noiseParams = server.registryAccess().lookupOrThrow(Registries.NOISE)
-            val config = RandomState.create(settings, noiseParams, seed)
+            val config = RandomState.create(noiseParams, seed, settings)
 
             val chunkGenerator = serverLevel.chunkSource.generator
             val biomeSource = chunkGenerator.biomeSource
@@ -333,37 +370,37 @@ class ChunkDumpTests {
             )
 
             val testSampler =
-                NoiseChunk.forChunk(
-                    chunk, config, object : DensityFunctions.BeardifierOrMarker {
-                        override fun maxValue(): Double = 0.0
-                        override fun minValue(): Double = 0.0
-                        override fun compute(pos: DensityFunction.FunctionContext): Double = 0.0
-                        override fun fillArray(densities: DoubleArray, contextProvider: DensityFunction.ContextProvider) {
-                            densities.fill(0.0)
-                        }
-                    }, settings, createFluidLevelSampler(settings), Blender.empty()
+                NoiseChunk(
+                    config,
+                    object : Beardifier(emptyList(), emptyList(), null) {
+                        override fun sampleValue(context: SamplerContext, x: Int, y: Int, z: Int): Float = 0.0f
+                    },
+                    settings,
+                    createFluidLevelSampler(settings),
+                    Blender.empty(),
+                    DensityVolume(16, chunk.height, 16, chunk.pos.minBlockX, chunk.minY, chunk.pos.minBlockZ)
                 )
 
             val biomeNoiseSampler = createMultiNoiseSampler(config, testSampler)
-            chunk.fillBiomesFromNoise(biomeSource, biomeNoiseSampler)
+            val biomeResolver = biomeSource.createResolver(biomeNoiseSampler)
+            chunk.fillBiomesFromNoise(biomeResolver)
             chunk.persistedStatus = ChunkStatus.BIOMES
 
-            populateNoise(settings, testSampler, shape, chunk)
-            chunk.persistedStatus = ChunkStatus.NOISE
+            populateNoise(settings, testSampler, shape, chunk, chunkGenerator, config, levelHeightAccessor)
+            chunk.persistedStatus = ChunkStatus.TERRAIN
 
-            val biomeMixer = BiomeManager({ x, y, z -> biomeSource.getNoiseBiome(x, y, z, biomeNoiseSampler) }, BiomeManager.obfuscateSeed(seed))
+            val biomeMixer = BiomeManager(biomeResolver, BiomeManager.obfuscateSeed(seed))
             val heightContext = WorldGenerationContext(chunkGenerator, serverLevel)
             config.surfaceSystem().buildSurface(
                 config,
                 biomeMixer,
-                settings.useLegacyRandomSource(),
                 heightContext,
                 chunk,
                 testSampler,
-                settings.surfaceRule(),
+                settings.materialRule().value(),
                 biomeSource.possibleBiomes()
             )
-            chunk.persistedStatus = ChunkStatus.SURFACE
+            chunk.persistedStatus = ChunkStatus.TERRAIN
 
             val result = IntArray(16 * 16 * chunk.height)
             for (x in 0..15) {
@@ -416,10 +453,10 @@ class ChunkDumpTests {
             val settings = ref.value()
 
             val noiseParams = server.registryAccess().lookupOrThrow(Registries.NOISE)
-            val config = RandomState.create(settings, noiseParams, seed)
+            val config = RandomState.create(noiseParams, seed, settings)
 
             removeWrappers(config, this.allowedWrappers)
-            config.router().mapAll(WrapperValidateVisitor(this.allowedWrappers))
+            mapRouter(config.router(), WrapperValidateVisitor(this.allowedWrappers))
 
             val shape = settings.noiseSettings()
             val chunkGenerator = serverLevel.chunkSource.generator
@@ -436,18 +473,27 @@ class ChunkDumpTests {
             )
 
             val testSampler =
-                NoiseChunk.forChunk(
-                    chunk, config, object : DensityFunctions.BeardifierOrMarker {
-                        override fun maxValue(): Double = 0.0
-                        override fun minValue(): Double = 0.0
-                        override fun compute(pos: DensityFunction.FunctionContext): Double = 0.0
-                        override fun fillArray(densities: DoubleArray, contextProvider: DensityFunction.ContextProvider) {
-                            densities.fill(0.0)
-                        }
-                    }, settings, createFluidLevelSampler(settings), Blender.empty()
+                NoiseChunk(
+                    config,
+                    object : Beardifier(emptyList(), emptyList(), null) {
+                        override fun sampleValue(context: SamplerContext, x: Int, y: Int, z: Int): Float = 0.0f
+                    },
+                    settings,
+                    createFluidLevelSampler(settings),
+                    Blender.empty(),
+                    DensityVolume(16, chunk.height, 16, chunk.pos.minBlockX, chunk.minY, chunk.pos.minBlockZ)
                 )
 
-            val data = dumpPopulateNoise(chunkPos.minBlockX, chunkPos.minBlockZ, testSampler, shape, settings)
+            val data = dumpPopulateNoise(
+                chunkPos.minBlockX,
+                chunkPos.minBlockZ,
+                testSampler,
+                shape,
+                settings,
+                chunkGenerator,
+                config,
+                levelHeightAccessor
+            )
             data?.forEach { state ->
                 topLevelJson.add(state)
             }
