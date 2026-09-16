@@ -115,6 +115,8 @@ class ChunkDumpTests {
             val i = chunkPos.minBlockX
             val j = chunkPos.minBlockZ
             val aquiferSampler = chunkNoiseSampler.aquifer()
+            val samplers = chunkNoiseSampler.cachingSamplers()
+            val finalDensity = randomState.router().finalDensity()
             val mutable = BlockPos.MutableBlockPos()
             val k = 4
             val l = 8
@@ -123,12 +125,6 @@ class ChunkDumpTests {
 
             val cellHeight = shapeConfig.height() / l
             val minimumCellY = Math.floorDiv(shapeConfig.minY(), l)
-
-            val columns = Array(16) { lx ->
-                Array(16) { lz ->
-                    chunkGenerator.getBaseColumn(i + lx, j + lz, heightAccessor, randomState)
-                }
-            }
 
             for (o in 0..<m) {
                 for (p in 0..<n) {
@@ -152,7 +148,8 @@ class ChunkDumpTests {
                                 for (z in 0..<k) {
                                     val aa = j + p * k + z
                                     val ab = aa and 15
-                                    var blockState = columns[y][ab].getBlock(t)
+                                    val density = samplers.sampleValue(finalDensity, x, t, aa).toDouble()
+                                    var blockState = aquiferSampler.computeSubstance(x, t, aa, density)
                                     if (blockState == null) {
                                         blockState = settings.defaultBlock()
                                     }
@@ -194,12 +191,9 @@ class ChunkDumpTests {
 
             val cellHeight = config.height() / l
             val minimumCellY = Math.floorDiv(config.minY(), l)
-
-            val columns = Array(16) { lx ->
-                Array(16) { lz ->
-                    chunkGenerator.getBaseColumn(startX + lx, startZ + lz, heightAccessor, randomState)
-                }
-            }
+            val aquiferSampler = sampler.aquifer()
+            val samplers = sampler.cachingSamplers()
+            val finalDensity = randomState.router().finalDensity()
 
             for (o in 0..<m) {
                 for (p in 0..<n) {
@@ -212,7 +206,8 @@ class ChunkDumpTests {
                                 for (z in 0..<k) {
                                     val aa = startZ + p * k + z
                                     val ab = aa and 15
-                                    var blockState = columns[y][ab].getBlock(t)
+                                    val density = samplers.sampleValue(finalDensity, x, t, aa).toDouble()
+                                    var blockState = aquiferSampler.computeSubstance(x, t, aa, density)
                                     if (blockState == null) {
                                         blockState = settings.defaultBlock()
                                     }
