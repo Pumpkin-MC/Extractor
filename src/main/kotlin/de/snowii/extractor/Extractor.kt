@@ -68,6 +68,8 @@ class Extractor : ModInitializer {
             RecipeRemainder(),
             VillagerData(),
             CustomStats(),
+            WardenConstants(),
+            VibrationFrequency(),
             Stats(),
             SlotRanges(),
             MapColors(),

@@ -30,7 +30,7 @@ class Properties : Extractor.Extractor {
                 val propertyJson = JsonObject()
 
                 // Metadata for mapping
-                propertyJson.addProperty("hash_key", maybeProperty.hashCode())
+                propertyJson.addProperty("hash_key", PropertyKey.of(maybeProperty))
                 propertyJson.addProperty("enum_name", field.name.lowercase())
                 propertyJson.addProperty("serialized_name", maybeProperty.name)
 

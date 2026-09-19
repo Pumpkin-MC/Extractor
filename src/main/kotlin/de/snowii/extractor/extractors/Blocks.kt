@@ -5,6 +5,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import de.snowii.extractor.Extractor
+import de.snowii.extractor.extractors.non_registry.PropertyKey
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.Holder
@@ -196,7 +197,7 @@ class Blocks : Extractor.Extractor {
 
             val propsJson = JsonArray()
             for (prop in block.stateDefinition.properties) {
-                propsJson.add(prop.hashCode())
+                propsJson.add(PropertyKey.of(prop))
             }
             blockJson.add("properties", propsJson)
 
