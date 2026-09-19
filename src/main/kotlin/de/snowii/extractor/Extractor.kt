@@ -37,6 +37,7 @@ class Extractor : ModInitializer {
             Sounds(),
             BiomeMixerTest(),
             WorldEvent(),
+            Warden(),
             ScoreboardDisplaySlot(),
             Particles(),
             EntityAttributes(),
