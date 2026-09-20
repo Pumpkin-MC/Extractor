@@ -38,7 +38,13 @@ class Entities : Extractor.Extractor {
             val entity = entityType.create(server.overworld(), EntitySpawnReason.NATURAL)
             if (entity != null) {
                 if (entity is LivingEntity) {
-                    entityJson.addProperty("experience_reward", entity.getBaseExperienceReward(server.overworld()))
+                    // `getBaseExperienceReward` is not a constant: `Animal` and `WaterAnimal`
+                    // return `1 + random.nextInt(3)` and `SulfurCube` rolls too, so calling it
+                    // here baked one sample of that draw into the data and made this field
+                    // differ between extraction runs. `xpReward` is the value that really is
+                    // data; the classes that override the method compute their own, and that
+                    // is behaviour for the server to implement.
+                    entityJson.addProperty("experience_reward", (entity as? Mob)?.xpReward ?: 0)
 
                     if (entityName !in TARGET_SOUND_BLACKLIST) {
                         val hurtSound = getHurtSound(entity, damageSource)

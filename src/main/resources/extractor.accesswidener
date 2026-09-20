@@ -5,7 +5,7 @@ accessible method net/minecraft/world/level/block/FireBlock getIgniteOdds (Lnet/
 accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxHorizontalOffset ()F
 accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxVerticalOffset ()F
 
-accessible method net/minecraft/world/entity/LivingEntity getBaseExperienceReward (Lnet/minecraft/server/level/ServerLevel;)I
+accessible field net/minecraft/world/entity/Mob xpReward I
 accessible field net/minecraft/world/entity/EntityType spawnDimensionsScale F
 
 accessible class net/minecraft/world/level/levelgen/DensityFunctions$Mapped
