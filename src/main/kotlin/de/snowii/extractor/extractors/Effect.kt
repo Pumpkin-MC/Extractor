@@ -3,12 +3,14 @@ package de.snowii.extractor.extractors
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.server.MinecraftServer
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.effect.MobEffect
+import net.minecraft.world.entity.ai.attributes.AttributeModifier
 import java.util.*
 
 class Effect : Extractor.Extractor {
@@ -18,7 +20,9 @@ class Effect : Extractor.Extractor {
 
     override fun extract(server: MinecraftServer): JsonElement {
         val json = JsonObject()
-        val registry = server.registryAccess().lookupOrThrow(Registries.MOB_EFFECT)
+        val registryAccess = server.registryAccess()
+        val ops = registryAccess.createSerializationContext(JsonOps.INSTANCE)
+        val registry = registryAccess.lookupOrThrow(Registries.MOB_EFFECT)
 
         for (effect in BuiltInRegistries.MOB_EFFECT) {
             val itemJson = JsonObject()
@@ -46,14 +50,11 @@ class Effect : Extractor.Extractor {
 
             val attributeModifiersJson = JsonArray()
             effect.createModifiers(0) { attributeHolder, modifier ->
-                val modJson = JsonObject()
+                val modJson = AttributeModifier.CODEC.encodeStart(ops, modifier).getOrThrow().asJsonObject
                 modJson.addProperty(
                     "attribute",
                     attributeHolder.unwrapKey().get().identifier().path
                 )
-                modJson.addProperty("operation", modifier.operation().name)
-                modJson.addProperty("id", modifier.id().toString())
-                modJson.addProperty("baseValue", modifier.amount())
                 attributeModifiersJson.add(modJson)
             }
             itemJson.add("attribute_modifiers", attributeModifiersJson)
