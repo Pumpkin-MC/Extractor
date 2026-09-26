@@ -154,6 +154,8 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("slipperiness", block.friction)
             blockJson.addProperty("velocity_multiplier", block.speedFactor)
             blockJson.addProperty("jump_velocity_multiplier", block.jumpFactor)
+            blockJson.addProperty("bounce_restitution", block.bounceRestitution)
+            blockJson.addProperty("fall_distance_reduction", block.fallDistanceReduction)
             blockJson.addProperty("hardness", block.defaultBlockState().getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO))
             blockJson.addProperty("blast_resistance", block.explosionResistance)
             blockJson.addProperty("map_color", block.defaultMapColor().id)
