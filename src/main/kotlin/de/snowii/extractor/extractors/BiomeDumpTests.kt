@@ -249,4 +249,96 @@ class BiomeDumpTests : Extractor.Extractor {
             return topLevelJson
         }
     }
+
+    internal class GridBiomeDump(
+        private val filename: String = "grid_8x8_biomes.json",
+        private val seed: Long = 0,
+        private val startChunkX: Int = 0,
+        private val startChunkZ: Int = 0,
+        private val sizeX: Int = 8,
+        private val sizeZ: Int = 8
+    ) : Extractor.Extractor {
+        override fun fileName(): String = this.filename
+        override fun isTest(): Boolean = true
+
+        override fun extract(server: MinecraftServer): JsonElement {
+            val topLevelJson = JsonArray()
+
+            val biomeRegistry = server.registryAccess().lookupOrThrow(Registries.BIOME)
+
+            val ref = server.registryAccess().lookupOrThrow(Registries.NOISE_SETTINGS)
+                .getOrThrow(NoiseGeneratorSettings.OVERWORLD)
+            val settings = ref.value()
+
+            val noiseParams = server.registryAccess().lookupOrThrow(Registries.NOISE)
+            val config = RandomState.create(noiseParams, seed, settings)
+
+            val chunkGenerator = server.overworld().chunkSource.generator
+            val biomeSource = chunkGenerator.biomeSource
+
+            val levelHeightAccessor = LevelHeightAccessor.create(
+                chunkGenerator.minY,
+                chunkGenerator.genDepth
+            )
+
+            for (x in startChunkX until (startChunkX + sizeX)) {
+                for (z in startChunkZ until (startChunkZ + sizeZ)) {
+                    val biomeData = JsonObject()
+                    biomeData.addProperty("x", x)
+                    biomeData.addProperty("z", z)
+
+                    val chunkPos = ChunkPos(x, z)
+                    val chunk = createProtoChunk(
+                        chunkPos,
+                        UpgradeData.EMPTY,
+                        levelHeightAccessor,
+                        server
+                    )
+
+                    val testSampler =
+                        NoiseChunk(
+                            config,
+                            object : Beardifier(emptyList(), emptyList(), null) {
+                                override fun sampleValue(context: SamplerContext, x: Int, y: Int, z: Int): Float = 0.0f
+                            },
+                            settings,
+                            createFluidLevelSampler(settings),
+                            Blender.empty(),
+                            DensityVolume(16, chunk.height, 16, chunk.pos.minBlockX, chunk.minY, chunk.pos.minBlockZ)
+                        )
+                    val testNoiseSampler = createMultiNoiseSampler(config, testSampler)
+
+                    chunk.fillBiomesFromNoise(biomeSource.createResolver(testNoiseSampler))
+                    chunk.persistedStatus = ChunkStatus.BIOMES
+
+                    val minBiomeY = QuartPos.fromBlock(chunk.minY)
+                    val maxBiomeY = QuartPos.fromBlock(chunk.maxY)
+
+                    val data = JsonArray()
+                    for (biomeX in 0..3) {
+                        for (biomeZ in 0..3) {
+                            for (biomeY in minBiomeY..maxBiomeY) {
+                                val chunkData = JsonArray()
+
+                                val biome = chunk.getNoiseBiome(biomeX, biomeY, biomeZ)
+                                val id = biomeRegistry.getId(biome.value())
+
+                                chunkData.add(biomeX)
+                                chunkData.add(biomeY)
+                                chunkData.add(biomeZ)
+                                chunkData.add(id)
+
+                                data.add(chunkData)
+                            }
+                        }
+                    }
+
+                    biomeData.add("data", data)
+                    topLevelJson.add(biomeData)
+                }
+            }
+
+            return topLevelJson
+        }
+    }
 }

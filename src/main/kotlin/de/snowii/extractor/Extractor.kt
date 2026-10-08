@@ -183,7 +183,20 @@ class Extractor : ModInitializer {
             ChunkDumpTests.SurfaceDump("nether_surface_no_blend_no_beard_0_0.chunk", 0, 0, 0, "nether"),
             ChunkDumpTests.SurfaceDump("nether_surface_no_blend_no_beard_7_4.chunk", 0, 7, 4, "nether"),
             ChunkDumpTests.SurfaceDump("end_surface_no_blend_no_beard_0_0.chunk", 0, 0, 0, "end"),
-            ChunkDumpTests.SurfaceDump("end_surface_no_blend_no_beard_7_4.chunk", 0, 7, 4, "end")
+            ChunkDumpTests.SurfaceDump("end_surface_no_blend_no_beard_7_4.chunk", 0, 7, 4, "end"),
+            ChunkDumpTests.CarverDump("no_blend_no_beard_carvers_0_0.chunk", 0, 0, 0),
+            ChunkDumpTests.CarverDump("no_blend_no_beard_carvers_7_4.chunk", 0, 7, 4),
+            ChunkDumpTests.CarverDump("nether_carvers_no_blend_no_beard_0_0.chunk", 0, 0, 0, "nether"),
+            ChunkDumpTests.CarverDump("nether_carvers_no_blend_no_beard_7_4.chunk", 0, 7, 4, "nether"),
+            ChunkDumpTests.GridNoiseDump(),
+            ChunkDumpTests.GridSurfaceDump(),
+            ChunkDumpTests.GridCarverDump(),
+            ChunkDumpTests.GridFeaturesDump(),
+            ChunkDumpTests.GridFeaturesDump(dimension = "nether"),
+            ChunkDumpTests.GridFeaturesDump(dimension = "end"),
+            ChunkDumpTests.GridStructuresDump(),
+            ChunkDumpTests.AreaStructuresDump(),
+            BiomeDumpTests.GridBiomeDump()
         )
 
         val outputDirectory: Path
@@ -215,6 +228,7 @@ class Extractor : ModInitializer {
                 }
             }
             logger.info("Done, took ${timeInMillis}ms")
+            server.halt(false)
         })
     }
 
