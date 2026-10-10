@@ -54,6 +54,7 @@ declare -a FILES=(
   "gen_features.json"
   "biome.json"
   "blocks.json"
+  "block_loot_tables.json"
   "recipes.json"
   "chunk_status.json"
   "chunk_gen_settings.json"
