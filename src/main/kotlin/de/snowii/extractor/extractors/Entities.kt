@@ -89,6 +89,7 @@ class Entities : Extractor.Extractor {
             entityJson.addProperty("fire_immune", entityType.fireImmune())
             entityJson.addProperty("category", entityType.category.name)
             entityJson.addProperty("can_spawn_far_from_player", entityType.canSpawnFarFromPlayer())
+            entityJson.addProperty("allowed_in_peaceful", entityType.isAllowedInPeaceful)
             entityJson.addProperty("client_tracking_range", entityType.clientTrackingRange())
             entityJson.addProperty("update_interval", entityType.updateInterval())
             entityJson.addProperty("track_deltas", entityType.trackDeltas())
