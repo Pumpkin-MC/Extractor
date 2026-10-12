@@ -207,6 +207,7 @@ class Blocks : Extractor.Extractor {
                 val stateJson = JsonObject()
                 var stateFlags = 0
                 var sideFlags = 0
+                var faceOcclusionFlags = 0
 
                 if (state.isAir) stateFlags = stateFlags or AIR
                 if (state.ignitedByLava()) stateFlags = stateFlags or BURNABLE
@@ -236,12 +237,19 @@ class Blocks : Extractor.Extractor {
                     }
                 }
 
+                Direction.entries.forEach { dir ->
+                    if (Block.isShapeFullBlock(state.getFaceOcclusionShape(dir))) {
+                        faceOcclusionFlags = faceOcclusionFlags or (1 shl dir.ordinal)
+                    }
+                }
+
                 if (state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.DOWN, SupportType.CENTER)) sideFlags = sideFlags or DOWN_CENTER_SOLID
                 if (state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP, SupportType.CENTER)) sideFlags = sideFlags or UP_CENTER_SOLID
 
                 stateJson.addProperty("id", Block.getId(state))
                 stateJson.addProperty("state_flags", stateFlags and 0xFFFF)
                 stateJson.addProperty("side_flags", sideFlags and 0xFF)
+                stateJson.addProperty("face_occlusion_flags", faceOcclusionFlags)
                 stateJson.addProperty("instrument", state.instrument().serializedName)
                 stateJson.addProperty("luminance", state.lightEmission)
                 stateJson.addProperty("piston_behavior", state.pistonPushReaction.name)
