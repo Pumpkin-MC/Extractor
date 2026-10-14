@@ -9,15 +9,20 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.world.entity.EntityAttachment
+import net.minecraft.world.entity.EntityAttachments
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.SpawnPlacementTypes
 import net.minecraft.world.entity.SpawnPlacements
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes
+import net.minecraft.world.entity.animal.Animal
 import net.minecraft.world.level.storage.loot.LootTable
+import net.minecraft.world.phys.Vec3
 
 class Entities : Extractor.Extractor {
     override fun fileName(): String {
@@ -56,7 +61,26 @@ class Entities : Extractor.Extractor {
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is Mob)
+                entityJson.addProperty("animal", entity is Animal)
                 entityJson.addProperty("limit_per_chunk", (entity as? Mob)?.maxSpawnClusterSize ?: 0)
+
+                // Size and attachments of mobs that can be babies
+                if (entity is Mob) {
+                    entity.setBaby(true)
+                    if (entity.isBaby) {
+                        val babyDimensions = entity.getDimensions(Pose.STANDING)
+                        val baby = JsonObject()
+                        val babyDimension = JsonArray()
+                        babyDimension.add(babyDimensions.width())
+                        babyDimension.add(babyDimensions.height())
+                        baby.add("dimension", babyDimension)
+                        baby.addProperty("eye_height", babyDimensions.eyeHeight())
+                        val babyAttachments = babyDimensions.attachments()
+                        baby.add("passenger_attachments", attachmentPoints(babyAttachments, EntityAttachment.PASSENGER))
+                        baby.add("vehicle_attachment", point(babyAttachments.get(EntityAttachment.VEHICLE, 0, 0.0f)))
+                        entityJson.add("baby", baby)
+                    }
+                }
             }
 
             @Suppress("UNCHECKED_CAST")
@@ -100,6 +124,10 @@ class Entities : Extractor.Extractor {
             entityJson.addProperty("eye_height", entityType.dimensions.eyeHeight)
             entityJson.addProperty("spawn_dimensions_scale", entityType.spawnDimensionsScale)
 
+            val attachments = entityType.dimensions.attachments()
+            entityJson.add("passenger_attachments", attachmentPoints(attachments, EntityAttachment.PASSENGER))
+            entityJson.add("vehicle_attachment", point(attachments.get(EntityAttachment.VEHICLE, 0, 0.0f)))
+
             val spawnRestriction = JsonObject()
             val data = SpawnPlacements.getPlacementType(entityType)
             val locationName = when (data) {
@@ -122,6 +150,25 @@ class Entities : Extractor.Extractor {
         }
 
         return entitiesJson
+    }
+
+    private fun attachmentPoints(attachments: EntityAttachments, attachment: EntityAttachment): JsonArray {
+        val points = JsonArray()
+        var index = 0
+        while (true) {
+            val point = attachments.getNullable(attachment, index, 0.0f) ?: break
+            points.add(point(point))
+            index++
+        }
+        return points
+    }
+
+    private fun point(point: Vec3): JsonArray {
+        val array = JsonArray()
+        array.add(point.x)
+        array.add(point.y)
+        array.add(point.z)
+        return array
     }
 
     private fun getHurtSound(entity: LivingEntity, damageSource: DamageSource) =
