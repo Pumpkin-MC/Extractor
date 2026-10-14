@@ -10,6 +10,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
+import net.minecraft.tags.BlockTags
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.EmptyBlockGetter
 import net.minecraft.world.level.block.Block
@@ -138,6 +139,39 @@ class Blocks : Extractor.Extractor {
             && state.lightEmission < 14
     }
 
+    // Predicates that need a level (closed shulker box) match the default here and are
+    // left to the server.
+    private fun classifySuffocationPredicate(block: Block): String? {
+        var differsFromDefault = false
+        var never = true
+        var always = true
+
+        for (state in block.stateDefinition.getPossibleStates()) {
+            val actual = state.isSuffocating(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+            if (actual != isDefaultSuffocating(state)) {
+                differsFromDefault = true
+            }
+            if (actual) never = false else always = false
+        }
+
+        if (!differsFromDefault) {
+            return null
+        }
+
+        return when {
+            never -> "never"
+            always -> "always"
+            else -> error(
+                "Unrecognized suffocation predicate for ${BuiltInRegistries.BLOCK.getKey(block)}"
+            )
+        }
+    }
+
+    private fun isDefaultSuffocating(state: BlockState): Boolean {
+        return state.`is`(BlockTags.CAUSES_SUFFOCATION)
+            && state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonObject()
         val blocksJson = JsonArray()
@@ -194,6 +228,10 @@ class Blocks : Extractor.Extractor {
 
             classifySpawnFloorPredicate(block)?.let { predicate ->
                 blockJson.addProperty("spawn_floor_predicate", predicate)
+            }
+
+            classifySuffocationPredicate(block)?.let { predicate ->
+                blockJson.addProperty("suffocation_predicate", predicate)
             }
 
             val propsJson = JsonArray()
