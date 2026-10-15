@@ -48,7 +48,6 @@ class Extractor : ModInitializer {
             Items(),
             DataComponent(),
             Blocks(),
-            BlockLootTables(),
             MultiNoise(),
             MultiNoise().Sample(),
             Translations(),
