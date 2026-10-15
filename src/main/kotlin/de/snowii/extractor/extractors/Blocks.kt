@@ -10,6 +10,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
+import net.minecraft.tags.BlockTags
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.EmptyBlockGetter
 import net.minecraft.world.level.block.Block
@@ -138,6 +139,39 @@ class Blocks : Extractor.Extractor {
             && state.lightEmission < 14
     }
 
+    // Predicates that need a level (closed shulker box) match the default here and are
+    // left to the server.
+    private fun classifySuffocationPredicate(block: Block): String? {
+        var differsFromDefault = false
+        var never = true
+        var always = true
+
+        for (state in block.stateDefinition.getPossibleStates()) {
+            val actual = state.isSuffocating(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+            if (actual != isDefaultSuffocating(state)) {
+                differsFromDefault = true
+            }
+            if (actual) never = false else always = false
+        }
+
+        if (!differsFromDefault) {
+            return null
+        }
+
+        return when {
+            never -> "never"
+            always -> "always"
+            else -> error(
+                "Unrecognized suffocation predicate for ${BuiltInRegistries.BLOCK.getKey(block)}"
+            )
+        }
+    }
+
+    private fun isDefaultSuffocating(state: BlockState): Boolean {
+        return state.`is`(BlockTags.CAUSES_SUFFOCATION)
+            && state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonObject()
         val blocksJson = JsonArray()
@@ -199,6 +233,10 @@ class Blocks : Extractor.Extractor {
                 blockJson.addProperty("spawn_floor_predicate", predicate)
             }
 
+            classifySuffocationPredicate(block)?.let { predicate ->
+                blockJson.addProperty("suffocation_predicate", predicate)
+            }
+
             val propsJson = JsonArray()
             for (prop in block.stateDefinition.properties) {
                 propsJson.add(prop.hashCode())
@@ -210,6 +248,7 @@ class Blocks : Extractor.Extractor {
                 val stateJson = JsonObject()
                 var stateFlags = 0
                 var sideFlags = 0
+                var faceOcclusionFlags = 0
 
                 if (state.isAir) stateFlags = stateFlags or AIR
                 if (state.ignitedByLava()) stateFlags = stateFlags or BURNABLE
@@ -239,12 +278,19 @@ class Blocks : Extractor.Extractor {
                     }
                 }
 
+                Direction.entries.forEach { dir ->
+                    if (Block.isShapeFullBlock(state.getFaceOcclusionShape(dir))) {
+                        faceOcclusionFlags = faceOcclusionFlags or (1 shl dir.ordinal)
+                    }
+                }
+
                 if (state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.DOWN, SupportType.CENTER)) sideFlags = sideFlags or DOWN_CENTER_SOLID
                 if (state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP, SupportType.CENTER)) sideFlags = sideFlags or UP_CENTER_SOLID
 
                 stateJson.addProperty("id", Block.getId(state))
                 stateJson.addProperty("state_flags", stateFlags and 0xFFFF)
                 stateJson.addProperty("side_flags", sideFlags and 0xFF)
+                stateJson.addProperty("face_occlusion_flags", faceOcclusionFlags)
                 stateJson.addProperty("instrument", state.instrument().serializedName)
                 stateJson.addProperty("luminance", state.lightEmission)
                 stateJson.addProperty("piston_behavior", state.pistonPushReaction.name)
