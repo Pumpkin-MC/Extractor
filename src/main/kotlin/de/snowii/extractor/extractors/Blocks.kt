@@ -194,6 +194,9 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("blast_resistance", block.explosionResistance)
             blockJson.addProperty("map_color", block.defaultMapColor().id)
             blockJson.addProperty("item_id", BuiltInRegistries.ITEM.getId(block.asItem()))
+            block.lootTable.orElse(null)?.let { key ->
+                blockJson.addProperty("loot_table", key.identifier().toString())
+            }
 
             getShapeOffsetData(block)?.let {
                 blockJson.add("shape_offset", it)
