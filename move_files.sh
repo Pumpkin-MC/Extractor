@@ -37,6 +37,7 @@ declare -a FILES=(
   "carver.json"
   "game_rules.json"
   "game_event.json"
+  "position_source_type.json"
   "sounds.json"
   "status_effects.json"
   "entities.json"
