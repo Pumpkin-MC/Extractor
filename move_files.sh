@@ -60,6 +60,7 @@ declare -a FILES=(
   "chunk_gen_settings.json"
   "density_function.json"
   "world_event.json"
+  "entity_variants.json"
 )
 
 for FILE in "${FILES[@]}"; do

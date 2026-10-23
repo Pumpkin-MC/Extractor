@@ -63,6 +63,7 @@ class Extractor : ModInitializer {
             MapColors(),
             MapDecorations(),
             DyeColors(),
+            EntityVariants(),
             ChunkDumpTests.NoiseDump(
                 "no_blend_no_beard_0_0.chunk",
                 0,

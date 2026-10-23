@@ -38,6 +38,7 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] Map Colors
 - [x] Map Decorations
 - [x] Dye Colors
+- [x] Entity Variants
 - [x] Potion
 - [x] Tracked Data
 - [x] Metadata Types
