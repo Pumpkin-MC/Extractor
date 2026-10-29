@@ -9,7 +9,9 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.world.entity.EntitySpawnRequest
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
@@ -35,7 +37,8 @@ class Entities : Extractor.Extractor {
             val entityName = BuiltInRegistries.ENTITY_TYPE.getKey(entityType).path
             entityJson.addProperty("id", BuiltInRegistries.ENTITY_TYPE.getId(entityType))
 
-            val entity = entityType.create(server.overworld(), EntitySpawnReason.NATURAL)
+            // Ignore the spawn checks so peaceful difficulty doesn't drop the monsters.
+            val entity = entityType.create(server.overworld(), EntitySpawnRequest(EntitySpawnReason.NATURAL, true))
             if (entity != null) {
                 if (entity is LivingEntity) {
                     entityJson.addProperty("experience_reward", entity.getBaseExperienceReward(server.overworld()))
@@ -53,7 +56,16 @@ class Entities : Extractor.Extractor {
                             entityJson.addProperty("death_sound", deathSoundId)
                         }
                     }
+
+                    val fallSounds = entity.fallSounds
+                    entityJson.addProperty("small_fall_sound", soundName(fallSounds.small()))
+                    entityJson.addProperty("big_fall_sound", soundName(fallSounds.big()))
                 }
+                entityJson.addProperty("sound_source", entity.soundSource.name)
+                entityJson.addProperty("movement_emission", getMovementEmission(entity).name)
+                getSwimSound(entity)?.let { entityJson.addProperty("swim_sound", soundName(it)) }
+                entityJson.addProperty("swim_splash_sound", soundName(getSwimSplashSound(entity)))
+                entityJson.addProperty("swim_high_speed_splash_sound", soundName(getSwimHighSpeedSplashSound(entity)))
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is Mob)
                 entityJson.addProperty("limit_per_chunk", (entity as? Mob)?.maxSpawnClusterSize ?: 0)
@@ -130,6 +142,21 @@ class Entities : Extractor.Extractor {
     private fun getDeathSound(entity: LivingEntity) =
         getDeathSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
 
+    private fun getMovementEmission(entity: Entity) =
+        getMovementEmissionMethod.invoke(entity) as Entity.MovementEmission
+
+    private fun getSwimSound(entity: Entity) =
+        getSwimSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
+
+    private fun getSwimSplashSound(entity: Entity) =
+        getSwimSplashSoundMethod.invoke(entity) as net.minecraft.sounds.SoundEvent
+
+    private fun getSwimHighSpeedSplashSound(entity: Entity) =
+        getSwimHighSpeedSplashSoundMethod.invoke(entity) as net.minecraft.sounds.SoundEvent
+
+    private fun soundName(sound: net.minecraft.sounds.SoundEvent): String =
+        BuiltInRegistries.SOUND_EVENT.getKey(sound)?.path ?: error("Unregistered entity sound ${sound.location()}")
+
     companion object {
         private val TARGET_SOUND_BLACKLIST = setOf(
             "slime",
@@ -141,6 +168,18 @@ class Entities : Extractor.Extractor {
             .apply { isAccessible = true }
         private val getDeathSoundMethod = LivingEntity::class.java
             .getDeclaredMethod("getDeathSound")
+            .apply { isAccessible = true }
+        private val getMovementEmissionMethod = Entity::class.java
+            .getDeclaredMethod("getMovementEmission")
+            .apply { isAccessible = true }
+        private val getSwimSoundMethod = Entity::class.java
+            .getDeclaredMethod("getSwimSound")
+            .apply { isAccessible = true }
+        private val getSwimSplashSoundMethod = Entity::class.java
+            .getDeclaredMethod("getSwimSplashSound")
+            .apply { isAccessible = true }
+        private val getSwimHighSpeedSplashSoundMethod = Entity::class.java
+            .getDeclaredMethod("getSwimHighSpeedSplashSound")
             .apply { isAccessible = true }
     }
 }
