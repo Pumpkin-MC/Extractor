@@ -37,6 +37,7 @@ declare -a FILES=(
   "carver.json"
   "game_rules.json"
   "game_event.json"
+  "position_source_type.json"
   "sounds.json"
   "status_effects.json"
   "entities.json"
@@ -59,6 +60,7 @@ declare -a FILES=(
   "chunk_gen_settings.json"
   "density_function.json"
   "world_event.json"
+  "entity_variants.json"
 )
 
 for FILE in "${FILES[@]}"; do

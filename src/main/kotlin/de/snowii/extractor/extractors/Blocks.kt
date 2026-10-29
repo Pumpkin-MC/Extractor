@@ -10,15 +10,19 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.tags.BlockTags
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.EmptyBlockGetter
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.DropExperienceBlock
 import net.minecraft.world.level.block.FireBlock
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.SupportType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
+import java.lang.reflect.Modifier
 import java.util.*
 
 class Blocks : Extractor.Extractor {
@@ -49,6 +53,11 @@ class Blocks : Extractor.Extractor {
     }
 
     override fun fileName(): String = "blocks.json"
+
+    // Vanilla compares sound types by identity (`AbstractHorse.isWoodSoundType`), so keep the constant names.
+    private val soundTypeNames: Map<SoundType, String> = SoundType::class.java.fields
+        .filter { Modifier.isStatic(it.modifiers) && it.type == SoundType::class.java }
+        .associate { it.get(null) as SoundType to it.name }
 
     private fun getFlammableData(): Map<Block, Pair<Int, Int>> {
         val flammableData = mutableMapOf<Block, Pair<Int, Int>>()
@@ -138,10 +147,44 @@ class Blocks : Extractor.Extractor {
             && state.lightEmission < 14
     }
 
+    // Predicates that need a level (closed shulker box) match the default here and are
+    // left to the server.
+    private fun classifySuffocationPredicate(block: Block): String? {
+        var differsFromDefault = false
+        var never = true
+        var always = true
+
+        for (state in block.stateDefinition.getPossibleStates()) {
+            val actual = state.isSuffocating(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+            if (actual != isDefaultSuffocating(state)) {
+                differsFromDefault = true
+            }
+            if (actual) never = false else always = false
+        }
+
+        if (!differsFromDefault) {
+            return null
+        }
+
+        return when {
+            never -> "never"
+            always -> "always"
+            else -> error(
+                "Unrecognized suffocation predicate for ${BuiltInRegistries.BLOCK.getKey(block)}"
+            )
+        }
+    }
+
+    private fun isDefaultSuffocating(state: BlockState): Boolean {
+        return state.`is`(BlockTags.CAUSES_SUFFOCATION)
+            && state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)
+    }
+
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonObject()
         val blocksJson = JsonArray()
         val shapes: LinkedHashMap<AABB, Int> = LinkedHashMap()
+        val soundTypes: LinkedHashMap<SoundType, Int> = LinkedHashMap()
         val flammableData = getFlammableData()
 
         for (block in BuiltInRegistries.BLOCK) {
@@ -160,6 +203,9 @@ class Blocks : Extractor.Extractor {
             blockJson.addProperty("blast_resistance", block.explosionResistance)
             blockJson.addProperty("map_color", block.defaultMapColor().id)
             blockJson.addProperty("item_id", BuiltInRegistries.ITEM.getId(block.asItem()))
+            block.lootTable.orElse(null)?.let { key ->
+                blockJson.addProperty("loot_table", key.identifier().toString())
+            }
 
             getShapeOffsetData(block)?.let {
                 blockJson.add("shape_offset", it)
@@ -196,6 +242,10 @@ class Blocks : Extractor.Extractor {
                 blockJson.addProperty("spawn_floor_predicate", predicate)
             }
 
+            classifySuffocationPredicate(block)?.let { predicate ->
+                blockJson.addProperty("suffocation_predicate", predicate)
+            }
+
             val propsJson = JsonArray()
             for (prop in block.stateDefinition.properties) {
                 propsJson.add(prop.hashCode())
@@ -207,6 +257,7 @@ class Blocks : Extractor.Extractor {
                 val stateJson = JsonObject()
                 var stateFlags = 0
                 var sideFlags = 0
+                var faceOcclusionFlags = 0
 
                 if (state.isAir) stateFlags = stateFlags or AIR
                 if (state.ignitedByLava()) stateFlags = stateFlags or BURNABLE
@@ -236,17 +287,25 @@ class Blocks : Extractor.Extractor {
                     }
                 }
 
+                Direction.entries.forEach { dir ->
+                    if (Block.isShapeFullBlock(state.getFaceOcclusionShape(dir))) {
+                        faceOcclusionFlags = faceOcclusionFlags or (1 shl dir.ordinal)
+                    }
+                }
+
                 if (state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.DOWN, SupportType.CENTER)) sideFlags = sideFlags or DOWN_CENTER_SOLID
                 if (state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP, SupportType.CENTER)) sideFlags = sideFlags or UP_CENTER_SOLID
 
                 stateJson.addProperty("id", Block.getId(state))
                 stateJson.addProperty("state_flags", stateFlags and 0xFFFF)
                 stateJson.addProperty("side_flags", sideFlags and 0xFF)
+                stateJson.addProperty("face_occlusion_flags", faceOcclusionFlags)
                 stateJson.addProperty("instrument", state.instrument().serializedName)
                 stateJson.addProperty("luminance", state.lightEmission)
                 stateJson.addProperty("piston_behavior", state.pistonPushReaction.name)
                 stateJson.addProperty("hardness", state.getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO))
                 stateJson.addProperty("opacity", state.lightDampening)
+                stateJson.addProperty("sound_type", soundTypes.getOrPut(state.soundType) { soundTypes.size })
 
                 if (block.defaultBlockState() == state) {
                     blockJson.addProperty("default_state_id", Block.getId(state))
@@ -291,12 +350,30 @@ class Blocks : Extractor.Extractor {
             shapesJson.add(shapeJson)
         }
 
+        val soundTypesJson = JsonArray()
+        for (soundType in soundTypes.keys) {
+            val soundTypeJson = JsonObject()
+            soundTypeNames[soundType]?.let { soundTypeJson.addProperty("name", it) }
+            soundTypeJson.addProperty("volume", soundType.volume)
+            soundTypeJson.addProperty("pitch", soundType.pitch)
+            soundTypeJson.addProperty("break_sound", soundName(soundType.breakSound))
+            soundTypeJson.addProperty("step_sound", soundName(soundType.stepSound))
+            soundTypeJson.addProperty("place_sound", soundName(soundType.placeSound))
+            soundTypeJson.addProperty("hit_sound", soundName(soundType.hitSound))
+            soundTypeJson.addProperty("fall_sound", soundName(soundType.fallSound))
+            soundTypesJson.add(soundTypeJson)
+        }
+
         topLevelJson.add("block_entity_types", blockEntitiesJson)
         topLevelJson.add("shapes", shapesJson)
+        topLevelJson.add("sound_types", soundTypesJson)
         topLevelJson.add("blocks", blocksJson)
 
         return topLevelJson
     }
+
+    private fun soundName(sound: SoundEvent): String =
+        BuiltInRegistries.SOUND_EVENT.getKey(sound)?.path ?: error("Unregistered block sound ${sound.location()}")
 
     private fun <K, V> MutableMap<K, V>.getOrPut(key: K, defaultValue: () -> V): V {
         return this[key] ?: defaultValue().also { this[key] = it }
