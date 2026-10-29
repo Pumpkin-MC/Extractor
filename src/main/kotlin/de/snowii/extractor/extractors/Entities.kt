@@ -59,6 +59,7 @@ class Entities : Extractor.Extractor {
                     entityJson.addProperty("small_fall_sound", soundName(fallSounds.small()))
                     entityJson.addProperty("big_fall_sound", soundName(fallSounds.big()))
                 }
+                entityJson.addProperty("sound_source", entity.soundSource.name)
                 entityJson.addProperty("movement_emission", getMovementEmission(entity).name)
                 getSwimSound(entity)?.let { entityJson.addProperty("swim_sound", soundName(it)) }
                 entityJson.addProperty("swim_splash_sound", soundName(getSwimSplashSound(entity)))
