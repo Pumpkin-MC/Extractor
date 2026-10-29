@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntitySpawnReason
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
@@ -53,6 +54,10 @@ class Entities : Extractor.Extractor {
                             entityJson.addProperty("death_sound", deathSoundId)
                         }
                     }
+                }
+                entityJson.addProperty("movement_emission", getMovementEmission(entity).name)
+                getSwimSound(entity)?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.let {
+                    entityJson.addProperty("swim_sound", it.path)
                 }
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is Mob)
@@ -130,6 +135,12 @@ class Entities : Extractor.Extractor {
     private fun getDeathSound(entity: LivingEntity) =
         getDeathSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
 
+    private fun getMovementEmission(entity: Entity) =
+        getMovementEmissionMethod.invoke(entity) as Entity.MovementEmission
+
+    private fun getSwimSound(entity: Entity) =
+        getSwimSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
+
     companion object {
         private val TARGET_SOUND_BLACKLIST = setOf(
             "slime",
@@ -141,6 +152,12 @@ class Entities : Extractor.Extractor {
             .apply { isAccessible = true }
         private val getDeathSoundMethod = LivingEntity::class.java
             .getDeclaredMethod("getDeathSound")
+            .apply { isAccessible = true }
+        private val getMovementEmissionMethod = Entity::class.java
+            .getDeclaredMethod("getMovementEmission")
+            .apply { isAccessible = true }
+        private val getSwimSoundMethod = Entity::class.java
+            .getDeclaredMethod("getSwimSound")
             .apply { isAccessible = true }
     }
 }
