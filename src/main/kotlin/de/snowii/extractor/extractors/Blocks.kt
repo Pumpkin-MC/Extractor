@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.SupportType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
+import java.lang.reflect.Modifier
 import java.util.*
 
 class Blocks : Extractor.Extractor {
@@ -52,6 +53,11 @@ class Blocks : Extractor.Extractor {
     }
 
     override fun fileName(): String = "blocks.json"
+
+    // Vanilla compares sound types by identity (`AbstractHorse.isWoodSoundType`), so keep the constant names.
+    private val soundTypeNames: Map<SoundType, String> = SoundType::class.java.fields
+        .filter { Modifier.isStatic(it.modifiers) && it.type == SoundType::class.java }
+        .associate { it.get(null) as SoundType to it.name }
 
     private fun getFlammableData(): Map<Block, Pair<Int, Int>> {
         val flammableData = mutableMapOf<Block, Pair<Int, Int>>()
@@ -347,6 +353,7 @@ class Blocks : Extractor.Extractor {
         val soundTypesJson = JsonArray()
         for (soundType in soundTypes.keys) {
             val soundTypeJson = JsonObject()
+            soundTypeNames[soundType]?.let { soundTypeJson.addProperty("name", it) }
             soundTypeJson.addProperty("volume", soundType.volume)
             soundTypeJson.addProperty("pitch", soundType.pitch)
             soundTypeJson.addProperty("break_sound", soundName(soundType.breakSound))
