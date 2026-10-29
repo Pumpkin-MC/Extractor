@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.world.damagesource.DamageSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntitySpawnReason
+import net.minecraft.world.entity.EntitySpawnRequest
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.Mob
@@ -36,7 +37,8 @@ class Entities : Extractor.Extractor {
             val entityName = BuiltInRegistries.ENTITY_TYPE.getKey(entityType).path
             entityJson.addProperty("id", BuiltInRegistries.ENTITY_TYPE.getId(entityType))
 
-            val entity = entityType.create(server.overworld(), EntitySpawnReason.NATURAL)
+            // Ignore the spawn checks so peaceful difficulty doesn't drop the monsters.
+            val entity = entityType.create(server.overworld(), EntitySpawnRequest(EntitySpawnReason.NATURAL, true))
             if (entity != null) {
                 if (entity is LivingEntity) {
                     entityJson.addProperty("experience_reward", entity.getBaseExperienceReward(server.overworld()))
