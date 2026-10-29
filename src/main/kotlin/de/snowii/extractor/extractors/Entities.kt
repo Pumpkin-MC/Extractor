@@ -54,11 +54,15 @@ class Entities : Extractor.Extractor {
                             entityJson.addProperty("death_sound", deathSoundId)
                         }
                     }
+
+                    val fallSounds = entity.fallSounds
+                    entityJson.addProperty("small_fall_sound", soundName(fallSounds.small()))
+                    entityJson.addProperty("big_fall_sound", soundName(fallSounds.big()))
                 }
                 entityJson.addProperty("movement_emission", getMovementEmission(entity).name)
-                getSwimSound(entity)?.let(BuiltInRegistries.SOUND_EVENT::getKey)?.let {
-                    entityJson.addProperty("swim_sound", it.path)
-                }
+                getSwimSound(entity)?.let { entityJson.addProperty("swim_sound", soundName(it)) }
+                entityJson.addProperty("swim_splash_sound", soundName(getSwimSplashSound(entity)))
+                entityJson.addProperty("swim_high_speed_splash_sound", soundName(getSwimHighSpeedSplashSound(entity)))
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is Mob)
                 entityJson.addProperty("limit_per_chunk", (entity as? Mob)?.maxSpawnClusterSize ?: 0)
@@ -141,6 +145,15 @@ class Entities : Extractor.Extractor {
     private fun getSwimSound(entity: Entity) =
         getSwimSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
 
+    private fun getSwimSplashSound(entity: Entity) =
+        getSwimSplashSoundMethod.invoke(entity) as net.minecraft.sounds.SoundEvent
+
+    private fun getSwimHighSpeedSplashSound(entity: Entity) =
+        getSwimHighSpeedSplashSoundMethod.invoke(entity) as net.minecraft.sounds.SoundEvent
+
+    private fun soundName(sound: net.minecraft.sounds.SoundEvent): String =
+        BuiltInRegistries.SOUND_EVENT.getKey(sound)?.path ?: error("Unregistered entity sound ${sound.location()}")
+
     companion object {
         private val TARGET_SOUND_BLACKLIST = setOf(
             "slime",
@@ -158,6 +171,12 @@ class Entities : Extractor.Extractor {
             .apply { isAccessible = true }
         private val getSwimSoundMethod = Entity::class.java
             .getDeclaredMethod("getSwimSound")
+            .apply { isAccessible = true }
+        private val getSwimSplashSoundMethod = Entity::class.java
+            .getDeclaredMethod("getSwimSplashSound")
+            .apply { isAccessible = true }
+        private val getSwimHighSpeedSplashSoundMethod = Entity::class.java
+            .getDeclaredMethod("getSwimHighSpeedSplashSound")
             .apply { isAccessible = true }
     }
 }
