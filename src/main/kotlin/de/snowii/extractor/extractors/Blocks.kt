@@ -10,6 +10,7 @@ import net.minecraft.core.Direction
 import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
+import net.minecraft.sounds.SoundEvent
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.EmptyBlockGetter
@@ -17,6 +18,7 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.DropExperienceBlock
 import net.minecraft.world.level.block.FireBlock
+import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.SupportType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
@@ -176,6 +178,7 @@ class Blocks : Extractor.Extractor {
         val topLevelJson = JsonObject()
         val blocksJson = JsonArray()
         val shapes: LinkedHashMap<AABB, Int> = LinkedHashMap()
+        val soundTypes: LinkedHashMap<SoundType, Int> = LinkedHashMap()
         val flammableData = getFlammableData()
 
         for (block in BuiltInRegistries.BLOCK) {
@@ -296,6 +299,7 @@ class Blocks : Extractor.Extractor {
                 stateJson.addProperty("piston_behavior", state.pistonPushReaction.name)
                 stateJson.addProperty("hardness", state.getDestroySpeed(EmptyBlockGetter.INSTANCE, BlockPos.ZERO))
                 stateJson.addProperty("opacity", state.lightDampening)
+                stateJson.addProperty("sound_type", soundTypes.getOrPut(state.soundType) { soundTypes.size })
 
                 if (block.defaultBlockState() == state) {
                     blockJson.addProperty("default_state_id", Block.getId(state))
@@ -340,12 +344,29 @@ class Blocks : Extractor.Extractor {
             shapesJson.add(shapeJson)
         }
 
+        val soundTypesJson = JsonArray()
+        for (soundType in soundTypes.keys) {
+            val soundTypeJson = JsonObject()
+            soundTypeJson.addProperty("volume", soundType.volume)
+            soundTypeJson.addProperty("pitch", soundType.pitch)
+            soundTypeJson.addProperty("break_sound", soundName(soundType.breakSound))
+            soundTypeJson.addProperty("step_sound", soundName(soundType.stepSound))
+            soundTypeJson.addProperty("place_sound", soundName(soundType.placeSound))
+            soundTypeJson.addProperty("hit_sound", soundName(soundType.hitSound))
+            soundTypeJson.addProperty("fall_sound", soundName(soundType.fallSound))
+            soundTypesJson.add(soundTypeJson)
+        }
+
         topLevelJson.add("block_entity_types", blockEntitiesJson)
         topLevelJson.add("shapes", shapesJson)
+        topLevelJson.add("sound_types", soundTypesJson)
         topLevelJson.add("blocks", blocksJson)
 
         return topLevelJson
     }
+
+    private fun soundName(sound: SoundEvent): String =
+        BuiltInRegistries.SOUND_EVENT.getKey(sound)?.path ?: error("Unregistered block sound ${sound.location()}")
 
     private fun <K, V> MutableMap<K, V>.getOrPut(key: K, defaultValue: () -> V): V {
         return this[key] ?: defaultValue().also { this[key] = it }
