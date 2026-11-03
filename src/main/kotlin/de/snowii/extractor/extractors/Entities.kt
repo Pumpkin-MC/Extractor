@@ -66,6 +66,9 @@ class Entities : Extractor.Extractor {
                     entityJson.addProperty("small_fall_sound", soundName(fallSounds.small()))
                     entityJson.addProperty("big_fall_sound", soundName(fallSounds.big()))
                 }
+                if (entity is Mob) {
+                    getAmbientSound(entity)?.let { entityJson.addProperty("ambient_sound", soundName(it)) }
+                }
                 entityJson.addProperty("sound_source", entity.soundSource.name)
                 entityJson.addProperty("movement_emission", getMovementEmission(entity).name)
                 getSwimSound(entity)?.let { entityJson.addProperty("swim_sound", soundName(it)) }
@@ -189,6 +192,9 @@ class Entities : Extractor.Extractor {
     private fun getDeathSound(entity: LivingEntity) =
         getDeathSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
 
+    private fun getAmbientSound(entity: Mob) =
+        getAmbientSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
+
     private fun getMovementEmission(entity: Entity) =
         getMovementEmissionMethod.invoke(entity) as Entity.MovementEmission
 
@@ -218,6 +224,9 @@ class Entities : Extractor.Extractor {
             .apply { isAccessible = true }
         private val getMovementEmissionMethod = Entity::class.java
             .getDeclaredMethod("getMovementEmission")
+            .apply { isAccessible = true }
+        private val getAmbientSoundMethod = Mob::class.java
+            .getDeclaredMethod("getAmbientSound")
             .apply { isAccessible = true }
         private val getSwimSoundMethod = Entity::class.java
             .getDeclaredMethod("getSwimSound")
