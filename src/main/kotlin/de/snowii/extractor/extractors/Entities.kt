@@ -5,6 +5,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
 import de.snowii.extractor.Extractor
+import net.minecraft.core.Holder
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.server.MinecraftServer
@@ -22,7 +23,10 @@ import net.minecraft.world.entity.SpawnPlacementTypes
 import net.minecraft.world.entity.SpawnPlacements
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes
+import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.animal.Animal
+import net.minecraft.world.entity.animal.camel.Camel
+import net.minecraft.world.entity.animal.equine.AbstractHorse
 import net.minecraft.world.level.storage.loot.LootTable
 import net.minecraft.world.phys.Vec3
 
@@ -69,6 +73,18 @@ class Entities : Extractor.Extractor {
                 if (entity is Mob) {
                     getAmbientSound(entity)?.let { entityJson.addProperty("ambient_sound", soundName(it)) }
                 }
+                if (entity is AbstractHorse) {
+                    addHorseSounds(entity, entityJson)
+                }
+                if (entity is Camel) {
+                    entityJson.addProperty("sit_sound", soundName(getSitDownSoundMethod.invoke(entity) as SoundEvent))
+                    entityJson.addProperty("stand_sound", soundName(getStandUpSoundMethod.invoke(entity) as SoundEvent))
+                    entityJson.addProperty("dash_sound", soundName(getDashingSoundMethod.invoke(entity) as SoundEvent))
+                    entityJson.addProperty("dash_ready_sound", soundName(getDashReadySoundMethod.invoke(entity) as SoundEvent))
+                    @Suppress("UNCHECKED_CAST")
+                    val saddleSound = getSaddleSoundMethod.invoke(entity) as Holder<SoundEvent>
+                    entityJson.addProperty("saddle_sound", soundName(saddleSound.value()))
+                }
                 entityJson.addProperty("sound_source", entity.soundSource.name)
                 entityJson.addProperty("movement_emission", getMovementEmission(entity).name)
                 getSwimSound(entity)?.let { entityJson.addProperty("swim_sound", soundName(it)) }
@@ -93,6 +109,9 @@ class Entities : Extractor.Extractor {
                         val babyAttachments = babyDimensions.attachments()
                         baby.add("passenger_attachments", attachmentPoints(babyAttachments, EntityAttachment.PASSENGER))
                         baby.add("vehicle_attachment", point(babyAttachments.get(EntityAttachment.VEHICLE, 0, 0.0f)))
+                        if (entity is AbstractHorse) {
+                            addHorseSounds(entity, baby)
+                        }
                         entityJson.add("baby", baby)
                     }
                 }
@@ -192,6 +211,11 @@ class Entities : Extractor.Extractor {
     private fun getDeathSound(entity: LivingEntity) =
         getDeathSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
 
+    private fun addHorseSounds(horse: AbstractHorse, json: JsonObject) {
+        (getEatingSoundMethod.invoke(horse) as? SoundEvent)?.let { json.addProperty("eating_sound", soundName(it)) }
+        (getAngrySoundMethod.invoke(horse) as? SoundEvent)?.let { json.addProperty("angry_sound", soundName(it)) }
+    }
+
     private fun getAmbientSound(entity: Mob) =
         getAmbientSoundMethod.invoke(entity) as? net.minecraft.sounds.SoundEvent
 
@@ -227,6 +251,27 @@ class Entities : Extractor.Extractor {
             .apply { isAccessible = true }
         private val getAmbientSoundMethod = Mob::class.java
             .getDeclaredMethod("getAmbientSound")
+            .apply { isAccessible = true }
+        private val getEatingSoundMethod = AbstractHorse::class.java
+            .getDeclaredMethod("getEatingSound")
+            .apply { isAccessible = true }
+        private val getAngrySoundMethod = AbstractHorse::class.java
+            .getDeclaredMethod("getAngrySound")
+            .apply { isAccessible = true }
+        private val getSitDownSoundMethod = Camel::class.java
+            .getDeclaredMethod("getSitDownSound")
+            .apply { isAccessible = true }
+        private val getStandUpSoundMethod = Camel::class.java
+            .getDeclaredMethod("getStandUpSound")
+            .apply { isAccessible = true }
+        private val getDashingSoundMethod = Camel::class.java
+            .getDeclaredMethod("getDashingSound")
+            .apply { isAccessible = true }
+        private val getDashReadySoundMethod = Camel::class.java
+            .getDeclaredMethod("getDashReadySound")
+            .apply { isAccessible = true }
+        private val getSaddleSoundMethod = Camel::class.java
+            .getDeclaredMethod("getSaddleSound")
             .apply { isAccessible = true }
         private val getSwimSoundMethod = Entity::class.java
             .getDeclaredMethod("getSwimSound")
