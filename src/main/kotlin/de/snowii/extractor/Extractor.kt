@@ -56,6 +56,7 @@ class Extractor : ModInitializer {
             Fluids(),
             Properties(),
             FlowerPotTransformation(),
+            SuspiciousEffects(),
             VillagerData(),
             CustomStats(),
             Stats(),
