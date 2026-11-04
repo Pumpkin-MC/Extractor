@@ -30,6 +30,7 @@ class Effect : Extractor.Extractor {
             itemJson.addProperty("id", BuiltInRegistries.MOB_EFFECT.getId(effect))
             itemJson.addProperty("category", effect.category.name)
             itemJson.addProperty("color", effect.color)
+            itemJson.addProperty("instantaneous", effect.isInstantaneous)
 
             if (effect.blendInDurationTicks != 0 || effect.blendOutDurationTicks != 0 || effect.blendOutAdvanceTicks != 0) {
                 itemJson.addProperty("fade_in_ticks", effect.blendInDurationTicks)
