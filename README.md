@@ -22,6 +22,7 @@ Extractor is a Fabric mod that extracts Minecraft data (blocks, items, entities,
 - [x] Game Rules
 - [x] Translation (en_us)
 - [x] Particles
+- [x] Particle option network fields, including block trail colors
 - [x] Entity Statuses
 - [x] Status Effects
 - [x] Screens
