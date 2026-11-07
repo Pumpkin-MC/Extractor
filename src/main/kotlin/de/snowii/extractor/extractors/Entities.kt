@@ -28,6 +28,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.animal.Animal
+import net.minecraft.world.entity.monster.Enemy
 import net.minecraft.world.entity.animal.camel.Camel
 import net.minecraft.world.entity.animal.equine.AbstractHorse
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat
@@ -105,6 +106,7 @@ class Entities : Extractor.Extractor {
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is Mob)
                 entityJson.addProperty("animal", entity is Animal)
+                entityJson.addProperty("is_enemy", entity is Enemy)
                 entityJson.addProperty("limit_per_chunk", (entity as? Mob)?.maxSpawnClusterSize ?: 0)
 
                 // Size and attachments of mobs that can be babies
