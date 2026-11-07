@@ -106,7 +106,6 @@ class Entities : Extractor.Extractor {
                 entityJson.addProperty("attackable", entity.isAttackable)
                 entityJson.addProperty("mob", entity is Mob)
                 entityJson.addProperty("animal", entity is Animal)
-                entityJson.addProperty("is_enemy", entity is Enemy)
                 entityJson.addProperty("limit_per_chunk", (entity as? Mob)?.maxSpawnClusterSize ?: 0)
 
                 // Size and attachments of mobs that can be babies
@@ -122,6 +121,7 @@ class Entities : Extractor.Extractor {
                     }
                 }
             }
+            entityJson.addProperty("is_enemy", entity is Enemy)
 
             @Suppress("UNCHECKED_CAST")
             if (DefaultAttributes.hasSupplier(entityType as EntityType<out LivingEntity>)) {

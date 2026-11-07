@@ -6,15 +6,35 @@ import com.google.gson.JsonObject
 import de.snowii.extractor.Extractor
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
+import net.minecraft.world.attribute.EnvironmentAttribute
+import net.minecraft.world.attribute.EnvironmentAttributeReader
 import net.minecraft.world.attribute.EnvironmentAttributes
+import net.minecraft.world.attribute.SpatialAttributeInterpolator
 import net.minecraft.world.level.LevelReader
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.material.FlowingFluid
 import net.minecraft.world.level.material.Fluid
+import net.minecraft.world.phys.Vec3
 
 class Fluids : Extractor.Extractor {
     override fun fileName(): String {
         return "fluids.json"
+    }
+
+    // FAST_LAVA forced on a level view: both flow modes without a matching level
+    private fun withFastLava(level: LevelReader, fastLava: Boolean): LevelReader {
+        val attributes = level.environmentAttributes()
+        val reader = object : EnvironmentAttributeReader {
+            @Suppress("UNCHECKED_CAST")
+            override fun <V : Any> getDimensionValue(attribute: EnvironmentAttribute<V>): V =
+                if (attribute == EnvironmentAttributes.FAST_LAVA) fastLava as V else attributes.getDimensionValue(attribute)
+
+            override fun <V : Any> getValue(attribute: EnvironmentAttribute<V>, pos: Vec3, interpolator: SpatialAttributeInterpolator?): V =
+                attributes.getValue(attribute, pos, interpolator)
+        }
+        return object : LevelReader by level {
+            override fun environmentAttributes() = reader
+        }
     }
 
     // Spread tuning in a level
@@ -31,11 +51,8 @@ class Fluids : Extractor.Extractor {
     override fun extract(server: MinecraftServer): JsonElement {
         val topLevelJson = JsonArray()
         // LavaFluid reads the FAST_LAVA dimension attribute
-        val byFastLava = server.allLevels.groupBy {
-            it.environmentAttributes().getDimensionValue(EnvironmentAttributes.FAST_LAVA)
-        }
-        val normalLevel = byFastLava.getValue(false).first()
-        val fastLavaLevel = byFastLava.getValue(true).first()
+        val normalLevel = withFastLava(server.overworld(), false)
+        val fastLavaLevel = withFastLava(server.overworld(), true)
 
         for (fluid in BuiltInRegistries.FLUID) {
             val fluidJson = JsonObject()
