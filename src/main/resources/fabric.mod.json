@@ -17,5 +17,8 @@
     "fabric-api": "*",
     "minecraft": "${minecraft_version}"
   },
+  "mixins": [
+    "extractor.mixins.json"
+  ],
   "accessWidener": "extractor.accesswidener"
 }

@@ -191,15 +191,19 @@ class Extractor : ModInitializer {
             ChunkDumpTests.CarverDump("no_blend_no_beard_carvers_7_4.chunk", 0, 7, 4),
             ChunkDumpTests.CarverDump("nether_carvers_no_blend_no_beard_0_0.chunk", 0, 0, 0, "nether"),
             ChunkDumpTests.CarverDump("nether_carvers_no_blend_no_beard_7_4.chunk", 0, 7, 4, "nether"),
-            ChunkDumpTests.GridNoiseDump(),
-            ChunkDumpTests.GridSurfaceDump(),
-            ChunkDumpTests.GridCarverDump(),
-            ChunkDumpTests.GridFeaturesDump(),
-            ChunkDumpTests.GridFeaturesDump(dimension = "nether"),
-            ChunkDumpTests.GridFeaturesDump(dimension = "end"),
-            ChunkDumpTests.GridStructuresDump(),
-            ChunkDumpTests.AreaStructuresDump(),
-            BiomeDumpTests.GridBiomeDump()
+            // Superseded by AreaStructuresDump and ChunkStageParityDump:
+            // ChunkDumpTests.GridNoiseDump(),
+            // ChunkDumpTests.GridSurfaceDump(),
+            // ChunkDumpTests.GridCarverDump(),
+            // ChunkDumpTests.GridFeaturesDump(),
+            // ChunkDumpTests.GridFeaturesDump(dimension = "nether"),
+            // ChunkDumpTests.GridFeaturesDump(dimension = "end"),
+            BiomeDumpTests.GridBiomeDump(),
+            ChunkStageParityDump(dimension = "overworld"),
+            // ChunkStageParityDump(dimension = "nether"),
+            // ChunkStageParityDump(dimension = "end"),
+            // StructureStarts(),
+            // BiomeHashes()
         )
 
         val outputDirectory: Path

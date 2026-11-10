@@ -61,7 +61,7 @@ class Packets : Extractor.Extractor {
             val details = provider.details()
             details.listPackets { type: PacketType<*>, id: Int ->
                 when (details.id().id()) {
-                    "handshaking" -> handshakeArray.addProperty(type.id().path, id)
+                    "handshake", "handshaking" -> handshakeArray.addProperty(type.id().path, id)
                     "play" -> playArray.addProperty(type.id().path, id)
                     "status" -> statusArray.addProperty(type.id().path, id)
                     "login" -> loginArray.addProperty(type.id().path, id)

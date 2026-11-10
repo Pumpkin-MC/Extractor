@@ -6,18 +6,22 @@ import de.snowii.extractor.Extractor
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.MinecraftServer
 
-
 class DataComponent : Extractor.Extractor {
-    override fun fileName(): String {
-        return "data_component.json"
-    }
+    override fun fileName(): String = "data_component.json"
 
     override fun extract(server: MinecraftServer): JsonElement {
-        val dataComponentJson = JsonObject()
-        val list = BuiltInRegistries.DATA_COMPONENT_TYPE.stream();
-        for (item in list) {
-            dataComponentJson.addProperty(item.toString(), BuiltInRegistries.DATA_COMPONENT_TYPE.getId(item));
+        val registry = BuiltInRegistries.DATA_COMPONENT_TYPE
+        val json = JsonObject()
+
+        for ((key, type) in registry.entrySet()) {
+            val properties = JsonObject().apply {
+                addProperty("id", registry.getId(type))
+                addProperty("persistent", !type.isTransient)
+                addProperty("ignore_swap_animation", type.ignoreSwapAnimation())
+            }
+            json.add(key.identifier().toString(), properties)
         }
-        return dataComponentJson
+
+        return json
     }
 }

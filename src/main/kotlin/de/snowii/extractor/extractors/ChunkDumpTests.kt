@@ -409,7 +409,6 @@ class ChunkDumpTests {
             chunk.persistedStatus = ChunkStatus.BIOMES
 
             populateNoise(settings, testSampler, shape, chunk, chunkGenerator, config, levelHeightAccessor)
-            chunk.persistedStatus = ChunkStatus.TERRAIN
 
             val biomeMixer = BiomeManager(biomeResolver, BiomeManager.obfuscateSeed(seed))
             val heightContext = WorldGenerationContext(chunkGenerator, serverLevel)
@@ -509,7 +508,6 @@ class ChunkDumpTests {
             chunk.persistedStatus = ChunkStatus.BIOMES
 
             populateNoise(settings, testSampler, shape, chunk, chunkGenerator, config, levelHeightAccessor)
-            chunk.persistedStatus = ChunkStatus.TERRAIN
 
             val biomeMixer = BiomeManager(biomeResolver, BiomeManager.obfuscateSeed(seed))
             val heightContext = WorldGenerationContext(chunkGenerator, serverLevel)
@@ -1376,7 +1374,7 @@ class ChunkDumpTests {
         private val dimension: String = "overworld"
     ) : Extractor.Extractor {
         override fun fileName(): String {
-            return "area_structures.json"
+            return if (dimension == "overworld") "area_structures.json" else "${dimension}_area_structures.json"
         }
 
         override fun isTest(): Boolean = true
@@ -1417,8 +1415,16 @@ class ChunkDumpTests {
             val structureTemplateManager = server.structureTemplateManager
             val structuresRegistry = server.registryAccess().lookupOrThrow(Registries.STRUCTURE)
 
-            for (cx in minChunkX..maxChunkX) {
-                for (cz in minChunkZ..maxChunkZ) {
+            val margin = 8
+            val minX = minChunkX - margin
+            val maxX = maxChunkX + margin
+            val minZ = minChunkZ - margin
+            val maxZ = maxChunkZ + margin
+
+            val chunkMap = HashMap<ChunkPos, ProtoChunk>()
+
+            for (cx in minX..maxX) {
+                for (cz in minZ..maxZ) {
                     val chunkPos = ChunkPos(cx, cz)
                     val chunk = createProtoChunk(
                         chunkPos,
@@ -1435,9 +1441,23 @@ class ChunkDumpTests {
                         structureTemplateManager,
                         serverLevel.dimension()
                     )
+                    chunk.persistedStatus = ChunkStatus.STRUCTURE_STARTS
+                    chunkMap[chunkPos] = chunk
+                }
+            }
+
+            val worldGenLevel = GridWorldGenLevel(serverLevel, chunkMap, seed)
+
+            for (cx in minChunkX..maxChunkX) {
+                for (cz in minChunkZ..maxChunkZ) {
+                    val chunk = chunkMap[ChunkPos(cx, cz)]!!
+                    chunkGenerator.createReferences(worldGenLevel, structureManager, chunk)
+                    chunk.persistedStatus = ChunkStatus.STRUCTURE_REFERENCES
 
                     val validStarts = chunk.allStarts.values.filter { it.isValid }
-                    if (validStarts.isNotEmpty()) {
+                    val validRefs = chunk.allReferences.filter { it.value.isNotEmpty() }
+
+                    if (validStarts.isNotEmpty() || validRefs.isNotEmpty()) {
                         val chunkObj = JsonObject()
                         chunkObj.addProperty("chunk_x", cx)
                         chunkObj.addProperty("chunk_z", cz)
@@ -1473,12 +1493,31 @@ class ChunkDumpTests {
                                 pieceObj.add("bb", pBbArr)
                                 val pieceType = BuiltInRegistries.STRUCTURE_PIECE.getKey(piece.type)?.toString() ?: "unknown"
                                 pieceObj.addProperty("type", pieceType)
+                                piece.orientation?.let { pieceObj.addProperty("orientation", it.get2DDataValue()) }
                                 piecesArr.add(pieceObj)
                             }
                             startObj.add("pieces", piecesArr)
                             startsArr.add(startObj)
                         }
                         chunkObj.add("starts", startsArr)
+
+                        val refsArr = JsonArray()
+                        for ((struct, refSet) in validRefs) {
+                            val refObj = JsonObject()
+                            val structKey = structuresRegistry.getKey(struct)?.toString() ?: "unknown"
+                            refObj.addProperty("id", structKey)
+                            val coordsArr = JsonArray()
+                            for (packed in refSet) {
+                                val refCoord = JsonObject()
+                                refCoord.addProperty("chunk_x", ChunkPos.getX(packed))
+                                refCoord.addProperty("chunk_z", ChunkPos.getZ(packed))
+                                coordsArr.add(refCoord)
+                            }
+                            refObj.add("chunks", coordsArr)
+                            refsArr.add(refObj)
+                        }
+                        chunkObj.add("references", refsArr)
+
                         topLevelJson.add(chunkObj)
                     }
                 }

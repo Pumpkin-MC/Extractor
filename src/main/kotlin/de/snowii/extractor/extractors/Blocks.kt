@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.SupportType
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.shapes.CollisionContext
 import java.lang.reflect.Modifier
 import java.util.*
 
@@ -324,6 +325,34 @@ class Blocks : Extractor.Extractor {
                     outlineIdxs.add(shapes.getOrPut(box) { shapes.size })
                 }
                 stateJson.add("outline_shapes", outlineIdxs)
+
+                val supportShapes = state.getBlockSupportShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO).toAabbs()
+                val supportIdxs = JsonArray()
+                for (box in supportShapes) {
+                    supportIdxs.add(shapes.getOrPut(box) { shapes.size })
+                }
+                stateJson.add("support_shapes", supportIdxs)
+
+                val occlusionShapes = state.getOcclusionShape().toAabbs()
+                val occlusionIdxs = JsonArray()
+                for (box in occlusionShapes) {
+                    occlusionIdxs.add(shapes.getOrPut(box) { shapes.size })
+                }
+                stateJson.add("occlusion_shapes", occlusionIdxs)
+
+                val interactionShapes = state.getInteractionShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO).toAabbs()
+                val interactionIdxs = JsonArray()
+                for (box in interactionShapes) {
+                    interactionIdxs.add(shapes.getOrPut(box) { shapes.size })
+                }
+                stateJson.add("interaction_shapes", interactionIdxs)
+
+                val visualShapes = state.getVisualShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, CollisionContext.empty()).toAabbs()
+                val visualIdxs = JsonArray()
+                for (box in visualShapes) {
+                    visualIdxs.add(shapes.getOrPut(box) { shapes.size })
+                }
+                stateJson.add("visual_shapes", visualIdxs)
 
                 for (beType in BuiltInRegistries.BLOCK_ENTITY_TYPE) {
                     if (beType.isValid(state)) {

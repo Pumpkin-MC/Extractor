@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "de.snowii.extractor.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ChunkStepMixin",
+    "NoiseBasedChunkGeneratorMixin",
+    "ChunkAccessBiomeCacheMixin",
+    "ClimateRTreeMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
