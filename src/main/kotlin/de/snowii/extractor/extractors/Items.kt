@@ -7,6 +7,7 @@ import de.snowii.extractor.Extractor
 import net.minecraft.core.component.DataComponentMap
 import net.minecraft.core.registries.Registries
 import net.minecraft.server.MinecraftServer
+import net.minecraft.world.item.ItemStackTemplate
 
 class Items : Extractor.Extractor {
     override fun fileName(): String {
@@ -28,6 +29,13 @@ class Items : Extractor.Extractor {
             val itemJson = JsonObject()
 
             itemJson.addProperty("id", registry.getId(realItem))
+
+            realItem.craftingRemainder?.let { remainder ->
+                itemJson.add(
+                    "crafting_remainder",
+                    ItemStackTemplate.CODEC.encodeStart(ops, remainder).getOrThrow()
+                )
+            }
 
             itemJson.add(
                 "components",
