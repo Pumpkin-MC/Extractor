@@ -34,6 +34,9 @@ accessible class net/minecraft/world/level/levelgen/DensityFunctions$Spline$Coor
 
 accessible field net/minecraft/world/level/block/FlowerPotBlock POTTED_BY_CONTENT Ljava/util/Map;
 
+accessible method net/minecraft/world/level/material/FlowingFluid getDropOff (Lnet/minecraft/world/level/LevelReader;)I
+accessible method net/minecraft/world/level/material/FlowingFluid getSlopeFindDistance (Lnet/minecraft/world/level/LevelReader;)I
+
 accessible field net/minecraft/stats/Stat formatter Lnet/minecraft/stats/StatFormatter;
 accessible field net/minecraft/stats/Stat value Ljava/lang/Object;
 accessible field net/minecraft/stats/StatType registry Lnet/minecraft/core/Registry;

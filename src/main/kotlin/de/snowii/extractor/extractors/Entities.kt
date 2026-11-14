@@ -28,6 +28,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.animal.Animal
+import net.minecraft.world.entity.monster.Enemy
 import net.minecraft.world.entity.animal.camel.Camel
 import net.minecraft.world.entity.animal.equine.AbstractHorse
 import net.minecraft.world.entity.vehicle.boat.AbstractBoat
@@ -120,6 +121,7 @@ class Entities : Extractor.Extractor {
                     }
                 }
             }
+            entityJson.addProperty("is_enemy", entity is Enemy)
 
             @Suppress("UNCHECKED_CAST")
             if (DefaultAttributes.hasSupplier(entityType as EntityType<out LivingEntity>)) {
