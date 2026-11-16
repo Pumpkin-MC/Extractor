@@ -151,6 +151,7 @@ class Entities : Extractor.Extractor {
             entityJson.addProperty("summonable", entityType.canSummon())
             entityJson.addProperty("saveable", entityType.canSerialize())
             entityJson.addProperty("fire_immune", entityType.fireImmune())
+            entityJson.addProperty("immune_to", entityType.immuneTo.location().toString())
             entityJson.addProperty("category", entityType.category.name)
             entityJson.addProperty("can_spawn_far_from_player", entityType.canSpawnFarFromPlayer())
             entityJson.addProperty("client_tracking_range", entityType.clientTrackingRange())

@@ -7,6 +7,7 @@ accessible method net/minecraft/world/level/block/state/BlockBehaviour getMaxVer
 
 accessible method net/minecraft/world/entity/LivingEntity getBaseExperienceReward (Lnet/minecraft/server/level/ServerLevel;)I
 accessible field net/minecraft/world/entity/EntityType spawnDimensionsScale F
+accessible field net/minecraft/world/entity/EntityType immuneTo Lnet/minecraft/tags/TagKey;
 accessible field net/minecraft/world/entity/animal/axolotl/Axolotl$Variant common Z
 accessible field net/minecraft/world/entity/animal/fish/Salmon$Variant boundingBoxScale F
 
