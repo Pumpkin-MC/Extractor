@@ -49,6 +49,8 @@ class Extractor : ModInitializer {
             Items(),
             DataComponent(),
             Blocks(),
+            BlockSetTypes(),
+            WoodTypes(),
             MultiNoise(),
             MultiNoise().Sample(),
             Translations(),
