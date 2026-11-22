@@ -14,13 +14,21 @@ import net.minecraft.sounds.SoundEvent
 import net.minecraft.tags.BlockTags
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.level.EmptyBlockGetter
+import net.minecraft.world.level.block.BasePressurePlateBlock
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.ButtonBlock
+import net.minecraft.world.level.block.DoorBlock
 import net.minecraft.world.level.block.DropExperienceBlock
+import net.minecraft.world.level.block.FenceGateBlock
 import net.minecraft.world.level.block.FireBlock
+import net.minecraft.world.level.block.SignBlock
 import net.minecraft.world.level.block.SoundType
 import net.minecraft.world.level.block.SupportType
+import net.minecraft.world.level.block.TrapDoorBlock
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.properties.BlockSetType
+import net.minecraft.world.level.block.state.properties.WoodType
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.shapes.CollisionContext
 import java.lang.reflect.Modifier
@@ -59,6 +67,38 @@ class Blocks : Extractor.Extractor {
     private val soundTypeNames: Map<SoundType, String> = SoundType::class.java.fields
         .filter { Modifier.isStatic(it.modifiers) && it.type == SoundType::class.java }
         .associate { it.get(null) as SoundType to it.name }
+
+    // Some block classes keep their BlockSetType or WoodType in a private field.
+    private fun <T> readPrivateField(block: Block, declaringClass: Class<*>, name: String): T {
+        val field = declaringClass.getDeclaredField(name)
+        field.isAccessible = true
+        @Suppress("UNCHECKED_CAST")
+        return field.get(block) as T
+    }
+
+    // The type comes from the block constructor, not from the block name.
+    private fun addBlockTypes(block: Block, blockJson: JsonObject) {
+        when (block) {
+            is DoorBlock -> blockJson.addProperty("block_set_type", block.type().name())
+            is TrapDoorBlock -> blockJson.addProperty(
+                "block_set_type",
+                readPrivateField<BlockSetType>(block, TrapDoorBlock::class.java, "type").name()
+            )
+            is ButtonBlock -> blockJson.addProperty(
+                "block_set_type",
+                readPrivateField<BlockSetType>(block, ButtonBlock::class.java, "type").name()
+            )
+            is BasePressurePlateBlock -> blockJson.addProperty(
+                "block_set_type",
+                readPrivateField<BlockSetType>(block, BasePressurePlateBlock::class.java, "type").name()
+            )
+            is FenceGateBlock -> blockJson.addProperty(
+                "wood_type",
+                readPrivateField<WoodType>(block, FenceGateBlock::class.java, "type").name()
+            )
+            is SignBlock -> blockJson.addProperty("wood_type", block.type().name())
+        }
+    }
 
     private fun getFlammableData(): Map<Block, Pair<Int, Int>> {
         val flammableData = mutableMapOf<Block, Pair<Int, Int>>()
@@ -207,6 +247,8 @@ class Blocks : Extractor.Extractor {
             block.lootTable.orElse(null)?.let { key ->
                 blockJson.addProperty("loot_table", key.identifier().toString())
             }
+
+            addBlockTypes(block, blockJson)
 
             getShapeOffsetData(block)?.let {
                 blockJson.add("shape_offset", it)
